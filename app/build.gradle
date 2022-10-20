@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
 }
 
 android {
@@ -71,4 +73,13 @@ dependencies {
     // To avoid a bug when testing Jetpack Compose on Android 13
     // See https://issuetracker.google.com/issues/240993946
     androidTestImplementation 'androidx.test:core:1.5.0-beta01'
+
+    // Hilt
+    implementation "com.google.dagger:hilt-android:2.44"
+    kapt "com.google.dagger:hilt-compiler:2.44"
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes true
 }

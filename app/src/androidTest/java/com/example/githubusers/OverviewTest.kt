@@ -1,27 +1,26 @@
 package com.example.githubusers
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.lifecycle.MutableLiveData
 import org.junit.Rule
 import org.junit.Test
 
 class OverviewTest {
 
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+    val composeTestRule = createComposeRule()
 
     @Test
-    fun myTest() {
+    fun should_show_username() {
         composeTestRule.setContent {
             MaterialTheme() {
-                OverviewScreen()
+                OverviewScreen(MutableLiveData("Hans Dampf"))
             }
         }
 
-        composeTestRule.onNodeWithText("Hello, World").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Hans Dampf").assertIsDisplayed()
     }
 }
