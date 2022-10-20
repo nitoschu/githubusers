@@ -22,9 +22,9 @@ class OverviewFragment : Fragment() {
             }
         }
     }
+}
 
-    @Composable
-    fun OverviewScreen() {
-        Text("Hello, World")
-    }
+@Composable
+fun OverviewScreen() {
+    Text("Hello, World")
 }
