@@ -1,16 +1,12 @@
 package com.example.usersloader
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class UsersLoader {
 
-    val users = MutableSharedFlow<String>()
+    val users = MutableStateFlow("")
 
-    fun requestUsers(scope: CoroutineScope) {
-        scope.launch {
-            users.emit("Gerd")
-        }
+    suspend fun requestUsers() {
+        users.emit("Gerd")
     }
 }
