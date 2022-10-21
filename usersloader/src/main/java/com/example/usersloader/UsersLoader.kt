@@ -1,7 +1,7 @@
 package com.example.usersloader
 
-import kotlinx.coroutines.flow.*
-
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 interface UsersLoader {
     suspend fun requestUsers(): Flow<String>

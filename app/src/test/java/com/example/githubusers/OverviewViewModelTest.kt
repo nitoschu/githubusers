@@ -4,7 +4,7 @@ package com.example.githubusers
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.* // ktlint-disable no-wildcard-imports
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -33,5 +33,4 @@ class MainDispatcherExtension(
     override fun afterEach(context: ExtensionContext?) {
         Dispatchers.resetMain()
     }
-
 }

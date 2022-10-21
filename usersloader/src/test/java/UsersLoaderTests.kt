@@ -1,7 +1,6 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
 import com.example.usersloader.DefaultUsersLoader
-import com.example.usersloader.UsersLoader
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -20,15 +19,13 @@ class UsersLoaderTests {
         val users = mutableListOf<String>()
 
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-            loader.users.toList(users)
-        }
-        loader.requestUsers()
+            loader.requestUsers().toList(users)
 
+        }
 
         runCurrent()
         advanceUntilIdle()
-        assertEquals("", users[0])
-        assertEquals("Gerd", users[1])
+        assertEquals("Gerd", users[0])
         collectJob.cancel()
     }
 }
