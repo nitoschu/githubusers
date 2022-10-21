@@ -1,12 +1,15 @@
 package com.example.usersloader
 
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 
-class UsersLoader {
 
-    val users = MutableStateFlow("")
+interface UsersLoader {
+    suspend fun requestUsers(): Flow<String>
+}
 
-    suspend fun requestUsers() {
-        users.emit("Gerd")
+class DefaultUsersLoader : UsersLoader {
+
+    override suspend fun requestUsers() = flow {
+        emit("Gerd")
     }
 }

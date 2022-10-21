@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
+import com.example.usersloader.DefaultUsersLoader
 import com.example.usersloader.UsersLoader
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
@@ -15,7 +16,7 @@ class UsersLoaderTests {
 
     @Test
     fun `should provide a list of users`() = runTest {
-        val loader = UsersLoader()
+        val loader = DefaultUsersLoader()
         val users = mutableListOf<String>()
 
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
