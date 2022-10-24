@@ -27,10 +27,10 @@ class OverviewViewModelTest {
     @Test
     fun `should use pagination`() = runTest {
         val viewModel = OverviewViewModel(FakeUsersRepo())
-        Assert.assertEquals(0, viewModel.uiState.value.page)
+        Assert.assertEquals(viewModel.uiState.value.page,0 )
         viewModel.onCreate()
         advanceUntilIdle()
-        Assert.assertEquals(1, viewModel.uiState.value.page)
+        Assert.assertEquals(viewModel.uiState.value.page, 1 )
     }
 
     @Test
@@ -62,16 +62,31 @@ class OverviewViewModelTest {
     @Test
     fun `should append the correct number of users when a new page is loaded`() = runTest {
         var viewModel = OverviewViewModel(FakeUsersRepo())
-        Assert.assertEquals(0, viewModel.uiState.value.users.size)
+        Assert.assertEquals(viewModel.uiState.value.users.size, 0 )
         viewModel.onCreate()
         advanceUntilIdle()
-        Assert.assertEquals(1, viewModel.uiState.value.users.size)
+        Assert.assertEquals(viewModel.uiState.value.users.size, 1 )
         viewModel.requestNewUsersFromRepo()
         advanceUntilIdle()
-        Assert.assertEquals(2, viewModel.uiState.value.users.size)
+        Assert.assertEquals(viewModel.uiState.value.users.size, 2)
         viewModel.requestNewUsersFromRepo()
         advanceUntilIdle()
-        Assert.assertEquals(3, viewModel.uiState.value.users.size)
+        Assert.assertEquals(viewModel.uiState.value.users.size, 3)
+    }
+
+    @Test
+    fun `collecting users should only be initialized once`() = runTest {
+        var viewModel = OverviewViewModel(FakeUsersRepo())
+        Assert.assertEquals(viewModel.uiState.value.users.size, 0)
+        viewModel.onCreate()
+        advanceUntilIdle()
+        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
+        viewModel.onCreate()
+        advanceUntilIdle()
+        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
+        viewModel.onCreate()
+        advanceUntilIdle()
+        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
     }
 }
 
