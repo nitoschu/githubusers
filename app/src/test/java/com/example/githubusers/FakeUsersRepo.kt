@@ -1,12 +1,17 @@
 package com.example.githubusers
 
 import com.example.usersloader.GithubUser
-import com.example.usersloader.UsersLoader
-import kotlinx.coroutines.flow.flow
+import com.example.usersloader.UsersRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
-internal class FakeUsersLoader : UsersLoader {
-    override suspend fun requestUsers() = flow {
-        emit(Result.success(listOf(mockGithubUser)))
+internal class FakeUsersRepo : UsersRepository {
+
+    private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
+    override val users: Flow<Result<List<GithubUser>>> = _users
+
+    override suspend fun requestUsers() {
+        _users.emit(Result.success(listOf(mockGithubUser)))
     }
 }
 

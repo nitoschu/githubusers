@@ -8,18 +8,15 @@ import retrofit2.http.GET
 import java.io.IOException
 import java.net.UnknownHostException
 
-object DefaultGithubDataSource : GithubDataSource {
+internal object DefaultGithubDataSource : GithubDataSource {
 
-    override suspend fun request(): Result<List<GithubUser>> {
+    private val api = getRetrofit().create(GithubApi::class.java)
 
-        val api = getRetrofit().create(GithubApi::class.java)
-
-        return try {
-            val response = api.getUsers()
-            handleResponse(response)
-        } catch (e: UnknownHostException) {
-            Result.failure(e)
-        }
+    override suspend fun queryUsers() = try {
+        val response = api.getUsers()
+        handleResponse(response)
+    } catch (e: UnknownHostException) {
+        Result.failure(e)
     }
 
     private fun handleResponse(response: retrofit2.Response<List<GithubUser>>):
@@ -49,14 +46,14 @@ object DefaultGithubDataSource : GithubDataSource {
         return OkHttpClient.Builder().addInterceptor(intercept).build()
     }
 
-    private val GITHUB_API = "https://api.github.com/"
+    private const val GITHUB_API = "https://api.github.com/"
+}
+
+internal interface GithubApi {
+    @GET("users")
+    suspend fun getUsers(): retrofit2.Response<List<GithubUser>>
 }
 
 interface GithubDataSource {
-    suspend fun request(): Result<List<GithubUser>>
-}
-
-interface GithubApi {
-    @GET("users")
-    suspend fun getUsers(): retrofit2.Response<List<GithubUser>>
+    suspend fun queryUsers(): Result<List<GithubUser>>
 }

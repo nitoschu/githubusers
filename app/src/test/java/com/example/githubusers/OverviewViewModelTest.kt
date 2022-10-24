@@ -17,8 +17,9 @@ class OverviewViewModelTest {
 
     @Test
     fun test() = runTest {
-        val viewModel = OverviewViewModel(FakeUsersLoader())
+        val viewModel = OverviewViewModel(FakeUsersRepo())
         viewModel.loadUser()
+        advanceUntilIdle()
         Assertions.assertEquals(mockGithubUser.login, viewModel.users.value[0].login)
     }
 }

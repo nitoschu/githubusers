@@ -1,14 +1,9 @@
 package com.example.githubusers
 
-import androidx.lifecycle.* // ktlint-disable no-wildcard-imports
-import com.example.usersloader.DefaultUsersLoader
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.usersloader.GithubUser
-import com.example.usersloader.UsersLoader
-import dagger.Binds
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
+import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,20 +12,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val usersRepo: UsersLoader
+    private val repo: UsersRepository
 ) : ViewModel() {
 
     private val _users = MutableStateFlow<List<GithubUser>>(listOf())
     val users: StateFlow<List<GithubUser>> = _users
 
     fun loadUser() {
-        viewModelScope.launch {
-            usersRepo.requestUsers().collect {
-                if (it.isSuccess) {
-                    handleSuccess(it.getOrThrow())
-                } else {
-                    handleFailure(it.exceptionOrNull())
-                }
+        viewModelScope.launch() { collectUsersFromRepo() }
+        viewModelScope.launch { repo.requestUsers() }
+    }
+
+    private suspend fun collectUsersFromRepo() {
+        repo.users.collect { result ->
+            if (result.isSuccess) {
+                handleSuccess(result.getOrThrow())
+            } else {
+                handleFailure(result.exceptionOrNull())
             }
         }
     }
@@ -40,18 +38,4 @@ class OverviewViewModel @Inject constructor(
     }
 
     private suspend fun handleFailure(error: Throwable?) {}
-}
-
-@Module(includes = [RepositoryModule.Declarations::class])
-@InstallIn(ViewModelComponent::class)
-object RepositoryModule {
-
-    @Module
-    @InstallIn(ViewModelComponent::class)
-    abstract class Declarations {
-        @Binds abstract fun bindUsersLoader(impl: DefaultUsersLoader): UsersLoader
-    }
-
-    @Provides
-    fun provideUsersLoader() = DefaultUsersLoader()
 }

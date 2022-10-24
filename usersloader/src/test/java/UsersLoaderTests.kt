@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
-import com.example.usersloader.DefaultUsersLoader
+import com.example.usersloader.DefaultUsersRepo
 import com.example.usersloader.GithubUser
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
@@ -19,13 +19,14 @@ class UsersLoaderTests {
     @Test
     fun `should provide a list of users`() = runTest {
         val source = FakeGithubDataSource()
-        val loader = DefaultUsersLoader(source)
+        val repo = DefaultUsersRepo(source)
         val results = mutableListOf<Result<List<GithubUser>>>()
 
-        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-            loader.requestUsers().toList(results)
+        val collectJob = launch() {
+            repo.users.toList(results)
         }
 
+        repo.requestUsers()
         advanceUntilIdle()
 
         val result = results[0]
@@ -35,18 +36,22 @@ class UsersLoaderTests {
         val user: GithubUser = source.fakeResponse.getOrNull()!![0]
         val testObject: GithubUser = result.getOrNull()!![0]
         assertEquals(user.login, testObject.login)
+
         collectJob.cancel()
     }
 
     @Test
     fun `should provide an error result`() = runTest {
         val source = FakeGithubDataSource(fakeResponse = failure(UnknownHostException()))
-        val loader = DefaultUsersLoader(source)
+        val repo = DefaultUsersRepo(source)
         val results = mutableListOf<Result<List<GithubUser>>>()
 
-        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-            loader.requestUsers().toList(results)
+        val collectJob = launch() {
+            repo.users.toList(results)
         }
+
+        repo.requestUsers()
+        advanceUntilIdle()
 
         val result = results[0]
         assertEquals(false, result.isSuccess)
@@ -56,5 +61,33 @@ class UsersLoaderTests {
         assertTrue(exception is UnknownHostException)
 
         collectJob.cancel()
+    }
+
+    @Test
+    fun `should provide an empty list of users`() = runTest {
+        val testData = Result.success(emptyList<GithubUser>())
+        val source = FakeGithubDataSource(testData)
+        val repo = DefaultUsersRepo(source)
+        val results = mutableListOf<Result<List<GithubUser>>>()
+
+        val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            repo.users.toList(results)
+        }
+
+        repo.requestUsers()
+        advanceUntilIdle()
+
+        val result = results[0]
+        assertEquals(true, result.isSuccess)
+        assertEquals(false, result.isFailure)
+        val emptyUsersList = result.getOrThrow()
+        assertTrue(emptyUsersList.isEmpty())
+
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `should use pagination`() = runTest {
+
     }
 }

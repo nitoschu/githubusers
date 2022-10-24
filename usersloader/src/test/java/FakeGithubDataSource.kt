@@ -4,7 +4,7 @@ import com.example.usersloader.GithubUser
 class FakeGithubDataSource(
     val fakeResponse: Result<List<GithubUser>> = Result.success(listOf(mockGithubUser))
 ) : GithubDataSource {
-    override suspend fun request(): Result<List<GithubUser>> = fakeResponse
+    override suspend fun queryUsers(): Result<List<GithubUser>> = fakeResponse
 }
 
 val mockGithubUser = GithubUser(
