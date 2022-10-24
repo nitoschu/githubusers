@@ -28,14 +28,14 @@ class OverviewFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             MaterialTheme {
-                OverviewScreen(viewModel.users.collectAsState().value)
+                OverviewScreen(viewModel.uiState.collectAsState().value.users)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.loadUser()
+        viewModel.onCreate()
     }
 }
 
