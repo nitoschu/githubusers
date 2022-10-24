@@ -7,10 +7,15 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 internal class FakeUsersRepo : UsersRepository {
 
+    var page = -1
+    var perPage = -1
+
     private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
     override val users: Flow<Result<List<GithubUser>>> = _users
 
-    override suspend fun requestUsers() {
+    override suspend fun requestUsers(page: Int, perPage: Int) {
+        this.page = page
+        this.perPage = perPage
         _users.emit(Result.success(listOf(mockGithubUser)))
     }
 }

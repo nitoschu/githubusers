@@ -88,6 +88,13 @@ class UsersLoaderTests {
 
     @Test
     fun `should use pagination`() = runTest {
-
+        val source = FakeGithubDataSource()
+        val repo = DefaultUsersRepo(source)
+        val page = 4
+        val perPage = 17
+        repo.requestUsers(page = page, perPage = perPage)
+        advanceUntilIdle()
+        assertEquals(page, source.page)
+        assertEquals(perPage, source.perPage)
     }
 }

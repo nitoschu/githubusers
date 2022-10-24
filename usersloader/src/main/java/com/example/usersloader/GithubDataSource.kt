@@ -1,10 +1,11 @@
 package com.example.usersloader
 
-import okhttp3.* // ktlint-disable no-wildcard-imports
+import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Query
 import java.io.IOException
 import java.net.UnknownHostException
 
@@ -12,8 +13,8 @@ internal object DefaultGithubDataSource : GithubDataSource {
 
     private val api = getRetrofit().create(GithubApi::class.java)
 
-    override suspend fun queryUsers() = try {
-        val response = api.getUsers()
+    override suspend fun queryUsers(page: Int, perPage: Int) = try {
+        val response = api.getUsers(page, perPage)
         handleResponse(response)
     } catch (e: UnknownHostException) {
         Result.failure(e)
@@ -51,9 +52,9 @@ internal object DefaultGithubDataSource : GithubDataSource {
 
 internal interface GithubApi {
     @GET("users")
-    suspend fun getUsers(): retrofit2.Response<List<GithubUser>>
+    suspend fun getUsers(@Query("page") page: Int, @Query("per_page") perPage: Int): retrofit2.Response<List<GithubUser>>
 }
 
 interface GithubDataSource {
-    suspend fun queryUsers(): Result<List<GithubUser>>
+    suspend fun queryUsers(page: Int = 0, perPage: Int = 10): Result<List<GithubUser>>
 }
