@@ -4,16 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.example.usersloader.GithubUser
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.StateFlow
 
 @AndroidEntryPoint
 class OverviewFragment : Fragment() {
@@ -27,7 +28,7 @@ class OverviewFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             MaterialTheme {
-                OverviewScreen(viewModel.user)
+                OverviewScreen(viewModel.users.collectAsState().value)
             }
         }
     }
@@ -39,7 +40,10 @@ class OverviewFragment : Fragment() {
 }
 
 @Composable
-fun OverviewScreen(userData: StateFlow<String>) {
-    val value: String? by userData.collectAsState()
-    Text(value ?: "")
+fun OverviewScreen(users: List<GithubUser>) {
+    LazyColumn() {
+        items(users) { user ->
+            Text(user.login)
+        }
+    }
 }

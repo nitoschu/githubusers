@@ -2,6 +2,7 @@ package com.example.githubusers
 
 import androidx.lifecycle.* // ktlint-disable no-wildcard-imports
 import com.example.usersloader.DefaultUsersLoader
+import com.example.usersloader.GithubUser
 import com.example.usersloader.UsersLoader
 import dagger.Binds
 import dagger.Module
@@ -19,16 +20,26 @@ class OverviewViewModel @Inject constructor(
     private val usersRepo: UsersLoader
 ) : ViewModel() {
 
-    val _user = MutableStateFlow("")
-    val user: StateFlow<String> = _user
+    private val _users = MutableStateFlow<List<GithubUser>>(listOf())
+    val users: StateFlow<List<GithubUser>> = _users
 
     fun loadUser() {
         viewModelScope.launch {
             usersRepo.requestUsers().collect {
-                _user.value = it
+                if (it.isSuccess) {
+                    handleSuccess(it.getOrThrow())
+                } else {
+                    handleFailure(it.exceptionOrNull())
+                }
             }
         }
     }
+
+    private suspend fun handleSuccess(users: List<GithubUser>) {
+        _users.emit(users)
+    }
+
+    private suspend fun handleFailure(error: Throwable?) {}
 }
 
 @Module(includes = [RepositoryModule.Declarations::class])
@@ -38,8 +49,7 @@ object RepositoryModule {
     @Module
     @InstallIn(ViewModelComponent::class)
     abstract class Declarations {
-        @Binds
-        abstract fun bindUsersLoader(impl: DefaultUsersLoader): UsersLoader
+        @Binds abstract fun bindUsersLoader(impl: DefaultUsersLoader): UsersLoader
     }
 
     @Provides

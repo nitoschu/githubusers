@@ -4,12 +4,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 interface UsersLoader {
-    suspend fun requestUsers(): Flow<String>
+    suspend fun requestUsers(): Flow<Result<List<GithubUser>>>
 }
 
-class DefaultUsersLoader : UsersLoader {
+class DefaultUsersLoader(
+    private val githubSource: GithubDataSource = DefaultGithubDataSource
+) : UsersLoader {
 
-    override suspend fun requestUsers() = flow {
-        emit("Gerd")
+    override suspend fun requestUsers(): Flow<Result<List<GithubUser>>> {
+        return flow {
+            emit(githubSource.request())
+        }
     }
 }

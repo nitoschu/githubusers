@@ -1,13 +1,10 @@
-package com.example.githubusers
-
+import com.example.usersloader.GithubDataSource
 import com.example.usersloader.GithubUser
-import com.example.usersloader.UsersLoader
-import kotlinx.coroutines.flow.flow
 
-internal class FakeUsersLoader : UsersLoader {
-    override suspend fun requestUsers() = flow {
-        emit(Result.success(listOf(mockGithubUser)))
-    }
+class FakeGithubDataSource(
+    val fakeResponse: Result<List<GithubUser>> = Result.success(listOf(mockGithubUser))
+) : GithubDataSource {
+    override suspend fun request(): Result<List<GithubUser>> = fakeResponse
 }
 
 val mockGithubUser = GithubUser(
