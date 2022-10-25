@@ -2,10 +2,14 @@ package com.example.githubusers
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.usersloader.GithubUser
-import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,47 +17,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val repo: UsersRepository
+    private val pagination: UsersPager
 ) : ViewModel() {
 
     private var collectUsersJob: Job? = null
     private val _uiState = MutableStateFlow(OverviewUiState())
     val uiState: StateFlow<OverviewUiState> = _uiState
 
+    val users: Flow<PagingData<GithubUser>> = Pager(PagingConfig(pageSize = 10)) { pagination }
+        .flow
+        .cachedIn(viewModelScope)
 
-    fun onCreate() {
+    fun startCollectingUsers() {
         if (collectUsersJob != null) return
-
-        collectUsersJob = viewModelScope.launch {
-            viewModelScope.launch { collectUsersFromRepoFlow() }
-            viewModelScope.launch { requestNewUsersFromRepo() }
-        }
+        collectUsersJob = viewModelScope.launch { requestNewUsersFromRepo() }
     }
 
-    private suspend fun collectUsersFromRepoFlow() {
-        repo.users.collect { result ->
-            if (result.isSuccess) {
-                handleSuccess(result.getOrThrow())
-            } else {
-                handleFailure(result.exceptionOrNull())
-            }
-        }
-    }
-
-    suspend fun requestNewUsersFromRepo() {
-        if (uiState.value.isLoading) return
+    private suspend fun requestNewUsersFromRepo() {
         setNewUiState(isLoading = true)
-        repo.requestUsers(uiState.value.page)
-    }
-
-    private suspend fun handleSuccess(nextUsers: List<GithubUser>) {
-        with(uiState.value) {
-            val newUsers = ArrayList<GithubUser>()
-            newUsers.addAll(users)
-            newUsers.addAll(nextUsers)
-            val newPage = page + 1
-            setNewUiState(isLoading = false, users = newUsers, page = newPage)
-        }
+        pagination.requestUsers(uiState.value.page, perPage = 10)
+        setNewUiState(isLoading = false)
     }
 
     private suspend fun handleFailure(error: Throwable?) {
@@ -63,14 +46,12 @@ class OverviewViewModel @Inject constructor(
     private suspend fun setNewUiState(
         isLoading: Boolean = uiState.value.isLoading,
         error: Throwable? = uiState.value.error,
-        users: List<GithubUser> = uiState.value.users,
         page: Int = uiState.value.page
-    ) = _uiState.emit(OverviewUiState(isLoading, error, users, page))
+    ) = _uiState.emit(OverviewUiState(isLoading, error, page))
 }
 
 data class OverviewUiState(
     val isLoading: Boolean = false,
     val error: Throwable? = null,
-    val users: List<GithubUser> = emptyList(),
     val page: Int = 0
 )

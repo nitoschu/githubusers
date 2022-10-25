@@ -8,30 +8,29 @@ import java.net.UnknownHostException
 
 internal class FakeUsersRepo : UsersRepository {
 
-    var page = -1
-    var perPage = -1
     var loadForever = false
     var hasTriedToReloadWhileStillBusy = false
-    var isBusyLoading = false
+    private var isBusyLoading = false
     var returnResultFailure = false
+    var requestUsersCalledNumber = 0
 
     private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
     override val users: Flow<Result<List<GithubUser>>> = _users
 
-    override suspend fun requestUsers(page: Int, perPage: Int) {
+    override suspend fun requestUsers(page: Int, perPage: Int): Result<List<GithubUser>> {
+        requestUsersCalledNumber++
         if (isBusyLoading) hasTriedToReloadWhileStillBusy = true
-        this.page = page
-        this.perPage = perPage
         if (loadForever) {
             isBusyLoading = true
-            return
+            return Result.success(listOf(mockGithubUser))
         }
 
         if (returnResultFailure) {
             _users.emit(Result.failure(UnknownHostException()))
-        } else {
-            _users.emit(Result.success(listOf(mockGithubUser)))
+            return Result.failure(UnknownHostException())
         }
+
+        return Result.success(listOf(mockGithubUser))
     }
 }
 
@@ -67,3 +66,6 @@ val mockGithubUser = GithubUser(
     followers = 1,
     following = 1
 )
+
+internal fun fakeUserPager() = UsersPager(FakeUsersRepo())
+internal fun fakeUsePager(fakeRepo: FakeUsersRepo) = UsersPager(fakeRepo)

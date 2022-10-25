@@ -4,7 +4,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.paging.PagingData
 import com.example.usersloader.GithubUser
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Rule
 import org.junit.Test
 
@@ -17,7 +19,7 @@ class OverviewTest {
     fun should_show_username() {
         composeTestRule.setContent {
             MaterialTheme() {
-                OverviewScreen(listOf(mockGithubUser))
+                OverviewScreen(flowOf(PagingData.from(listOf(mockGithubUser))))
             }
         }
 

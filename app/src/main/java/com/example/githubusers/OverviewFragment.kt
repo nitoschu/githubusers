@@ -5,16 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.example.usersloader.GithubUser
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 
 @AndroidEntryPoint
 class OverviewFragment : Fragment() {
@@ -28,22 +31,25 @@ class OverviewFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             MaterialTheme {
-                OverviewScreen(viewModel.uiState.collectAsState().value.users)
+                OverviewScreen(viewModel.users)
             }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.onCreate()
+        viewModel.startCollectingUsers()
     }
 }
 
 @Composable
-fun OverviewScreen(users: List<GithubUser>) {
+fun OverviewScreen(users: Flow<PagingData<GithubUser>>) {
+
+    val userItems: LazyPagingItems<GithubUser> = users.collectAsLazyPagingItems()
+
     LazyColumn() {
-        items(users) { user ->
-            Text(user.login)
+        items(userItems) { user ->
+            Text(user?.login ?: "")
         }
     }
 }

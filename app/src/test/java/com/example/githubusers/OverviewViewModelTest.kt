@@ -5,7 +5,6 @@ package com.example.githubusers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.* // ktlint-disable no-wildcard-imports
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -17,29 +16,12 @@ import org.testng.Assert
 class OverviewViewModelTest {
 
     @Test
-    fun `should emit users`() = runTest {
-        val viewModel = OverviewViewModel(FakeUsersRepo())
-        viewModel.onCreate()
-        advanceUntilIdle()
-        Assertions.assertEquals(mockGithubUser.login, viewModel.uiState.value.users[0].login)
-    }
-
-    @Test
-    fun `should use pagination`() = runTest {
-        val viewModel = OverviewViewModel(FakeUsersRepo())
-        Assert.assertEquals(viewModel.uiState.value.page,0 )
-        viewModel.onCreate()
-        advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.page, 1 )
-    }
-
-    @Test
     fun `should not reload while still loading`() = runTest {
         val repo = FakeUsersRepo().apply { loadForever = true }
-        val viewModel = OverviewViewModel(repo)
-        viewModel.onCreate()
+        val viewModel = OverviewViewModel(fakeUsePager(repo))
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
-        viewModel.requestNewUsersFromRepo()
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(repo.hasTriedToReloadWhileStillBusy)
     }
@@ -47,46 +29,33 @@ class OverviewViewModelTest {
     @Test
     fun `should always set loading state to false when results have been received`() = runTest {
         // Happy case, no error
-        var viewModel = OverviewViewModel(FakeUsersRepo())
-        viewModel.onCreate()
+        var viewModel = OverviewViewModel(fakeUserPager())
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
 
         // Sad case with error
-        viewModel = OverviewViewModel(FakeUsersRepo().apply { returnResultFailure = true })
-        viewModel.onCreate()
+        val repo = FakeUsersRepo().apply { returnResultFailure = true }
+        viewModel = OverviewViewModel(fakeUsePager(repo))
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
-    fun `should append the correct number of users when a new page is loaded`() = runTest {
-        var viewModel = OverviewViewModel(FakeUsersRepo())
-        Assert.assertEquals(viewModel.uiState.value.users.size, 0 )
-        viewModel.onCreate()
+    fun `collection of users should only be initialized once`() = runTest {
+        val repo = FakeUsersRepo()
+        val viewModel = OverviewViewModel(UsersPager(repo))
+        Assert.assertEquals(repo.requestUsersCalledNumber, 0)
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 1 )
-        viewModel.requestNewUsersFromRepo()
+        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 2)
-        viewModel.requestNewUsersFromRepo()
+        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
+        viewModel.startCollectingUsers()
         advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 3)
-    }
-
-    @Test
-    fun `collecting users should only be initialized once`() = runTest {
-        var viewModel = OverviewViewModel(FakeUsersRepo())
-        Assert.assertEquals(viewModel.uiState.value.users.size, 0)
-        viewModel.onCreate()
-        advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
-        viewModel.onCreate()
-        advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
-        viewModel.onCreate()
-        advanceUntilIdle()
-        Assert.assertEquals(viewModel.uiState.value.users.size, 1)
+        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
     }
 }
 
