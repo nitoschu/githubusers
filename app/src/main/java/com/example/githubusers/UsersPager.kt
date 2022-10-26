@@ -21,13 +21,12 @@ class UsersPager @Inject constructor(
         val pageNumber = params.key ?: 0
         val response = requestUsers(pageNumber, params.loadSize)
         if (response.isFailure) return LoadResult.Error(
-            response.exceptionOrNull() ?: UnknownError()
+            response.exceptionOrNull() ?: UnknownError("Unknown error")
         )
 
         val users = response.toUsers()
         if (users.isEmpty()) return LoadResult.Error(Throwable())
 
-//        val prevKey = if (pageNumber == 0) null else pageNumber
         val prevKey = if (pageNumber > 0) pageNumber - 1 else null
         val nextKey = pageNumber + 1
 

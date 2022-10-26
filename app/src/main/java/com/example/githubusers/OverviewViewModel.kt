@@ -36,6 +36,7 @@ class OverviewViewModel @Inject constructor(
     fun startCollectingUsers() {
         if (collectUsersJob != null) return
         collectUsersJob = viewModelScope.launch {
+            setNewUiState(isLoading = true)
             viewModelScope.launch {
                 repo.users.distinctUntilChanged().collect {
                     if (it.isFailure) {
@@ -50,9 +51,11 @@ class OverviewViewModel @Inject constructor(
     }
 
     fun retryCollectingUsers() {
+        viewModelScope.launch { setNewUiState(error = null, isLoading = true) }
         usersPager = UsersPager(repo)
-        viewModelScope.launch { setNewUiState(error = null) }
     }
+
+    fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
 
     private suspend fun requestNewUsersFromRepo() {
         setNewUiState(isLoading = true)

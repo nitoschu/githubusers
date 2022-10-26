@@ -21,6 +21,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.example.usersloader.GithubUser
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
 
@@ -39,7 +41,8 @@ class OverviewFragment : Fragment() {
                 OverviewScreen(
                     uiState = viewModel.uiState.collectAsState(),
                     users = viewModel.users,
-                    retryLoadingUsers = { viewModel.retryCollectingUsers() }
+                    retryLoadingUsers = { viewModel.retryCollectingUsers() },
+                    onErrorShown = { viewModel.onErrorShown() }
                 )
             }
         }
@@ -55,7 +58,8 @@ class OverviewFragment : Fragment() {
 fun OverviewScreen(
     uiState: State<OverviewUiState>,
     users: Flow<PagingData<GithubUser>>,
-    retryLoadingUsers: () -> Unit
+    retryLoadingUsers: () -> Unit,
+    onErrorShown: () -> Unit
 ) {
 
     val userItems: LazyPagingItems<GithubUser> = users.collectAsLazyPagingItems()
@@ -63,16 +67,30 @@ fun OverviewScreen(
 
     Scaffold(scaffoldState = scaffoldState, content = { padding ->
         Column(Modifier.padding(padding)) {
-            GithubUsersList(users = userItems)
-            if (uiState.value.error != null) {
-                LaunchedEffect(uiState.value.error) {
-                    scaffoldState.snackbarHostState.showSnackbar(
-                        uiState.value.error.toString(),
-                        "Retry",
-                        duration = SnackbarDuration.Indefinite
-                    )
+            GithubUsersList(
+                users = userItems,
+                isRefreshing = uiState.value.isLoading,
+                onRefresh = {
+                    onErrorShown()
                     retryLoadingUsers()
                     userItems.refresh()
+                }
+            )
+            if (uiState.value.error != null) {
+                LaunchedEffect(uiState.value.error) {
+                    val action = scaffoldState.snackbarHostState.showSnackbar(
+                        uiState.value.error.toString(),
+                        "Retry",
+                        duration = SnackbarDuration.Long
+                    )
+                    when (action) {
+                        SnackbarResult.Dismissed -> onErrorShown()
+                        SnackbarResult.ActionPerformed -> {
+                            onErrorShown()
+                            retryLoadingUsers()
+                            userItems.refresh()
+                        }
+                    }
                 }
             }
         }
@@ -81,10 +99,35 @@ fun OverviewScreen(
 }
 
 @Composable
-fun GithubUsersList(users: LazyPagingItems<GithubUser>) {
-    LazyColumn() {
-        items(users) { user ->
-            Text(user?.login ?: "")
+fun GithubUsersList(
+    users: LazyPagingItems<GithubUser>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit
+) {
+
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(isRefreshing),
+        onRefresh = { onRefresh() }
+    ) {
+        if (users.itemCount == 0) {
+            EmptyScreen { onRefresh() }
+        } else {
+            LazyColumn() {
+                items(users) { user ->
+                    Text(user?.login ?: "")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyScreen(onRefresh: () -> Unit) {
+    Column() {
+        Text("Github currently has no users :c")
+        Text("Just kidding, click the button to manually refresh.")
+        Button(onClick = { onRefresh() }) {
+            Text("Refresh")
         }
     }
 }
