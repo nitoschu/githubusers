@@ -4,10 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.* // ktlint-disable no-wildcard-imports
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -31,7 +36,11 @@ class OverviewFragment : Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             MaterialTheme {
-                OverviewScreen(viewModel.users)
+                OverviewScreen(
+                    uiState = viewModel.uiState.collectAsState(),
+                    users = viewModel.users,
+                    retryLoadingUsers = { viewModel.retryCollectingUsers() }
+                )
             }
         }
     }
@@ -43,12 +52,38 @@ class OverviewFragment : Fragment() {
 }
 
 @Composable
-fun OverviewScreen(users: Flow<PagingData<GithubUser>>) {
+fun OverviewScreen(
+    uiState: State<OverviewUiState>,
+    users: Flow<PagingData<GithubUser>>,
+    retryLoadingUsers: () -> Unit
+) {
 
     val userItems: LazyPagingItems<GithubUser> = users.collectAsLazyPagingItems()
+    val scaffoldState: ScaffoldState = rememberScaffoldState()
 
+    Scaffold(scaffoldState = scaffoldState, content = { padding ->
+        Column(Modifier.padding(padding)) {
+            GithubUsersList(users = userItems)
+            if (uiState.value.error != null) {
+                LaunchedEffect(uiState.value.error) {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        uiState.value.error.toString(),
+                        "Retry",
+                        duration = SnackbarDuration.Indefinite
+                    )
+                    retryLoadingUsers()
+                    userItems.refresh()
+                }
+            }
+        }
+    }
+    )
+}
+
+@Composable
+fun GithubUsersList(users: LazyPagingItems<GithubUser>) {
     LazyColumn() {
-        items(userItems) { user ->
+        items(users) { user ->
             Text(user?.login ?: "")
         }
     }

@@ -18,7 +18,7 @@ class OverviewViewModelTest {
     @Test
     fun `should not reload while still loading`() = runTest {
         val repo = FakeUsersRepo().apply { loadForever = true }
-        val viewModel = OverviewViewModel(fakeUsePager(repo))
+        val viewModel = OverviewViewModel(repo)
         viewModel.startCollectingUsers()
         advanceUntilIdle()
         viewModel.startCollectingUsers()
@@ -29,14 +29,14 @@ class OverviewViewModelTest {
     @Test
     fun `should always set loading state to false when results have been received`() = runTest {
         // Happy case, no error
-        var viewModel = OverviewViewModel(fakeUserPager())
+        var viewModel = OverviewViewModel(FakeUsersRepo())
         viewModel.startCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
 
         // Sad case with error
         val repo = FakeUsersRepo().apply { returnResultFailure = true }
-        viewModel = OverviewViewModel(fakeUsePager(repo))
+        viewModel = OverviewViewModel(repo)
         viewModel.startCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
@@ -45,7 +45,7 @@ class OverviewViewModelTest {
     @Test
     fun `collection of users should only be initialized once`() = runTest {
         val repo = FakeUsersRepo()
-        val viewModel = OverviewViewModel(UsersPager(repo))
+        val viewModel = OverviewViewModel(repo)
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
         viewModel.startCollectingUsers()
         advanceUntilIdle()

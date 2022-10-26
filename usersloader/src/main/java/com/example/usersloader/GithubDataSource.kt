@@ -31,7 +31,7 @@ internal object DefaultGithubDataSource : GithubDataSource {
         return Retrofit.Builder()
             .baseUrl(GITHUB_API)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(getClient(allowLogging = false))
+            .client(getClient())
             .build()
     }
 

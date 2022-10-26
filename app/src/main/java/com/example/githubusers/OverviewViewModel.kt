@@ -7,40 +7,61 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.usersloader.GithubUser
+import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val pagination: UsersPager
+    private val repo: UsersRepository
 ) : ViewModel() {
 
     private var collectUsersJob: Job? = null
     private val _uiState = MutableStateFlow(OverviewUiState())
     val uiState: StateFlow<OverviewUiState> = _uiState
 
-    val users: Flow<PagingData<GithubUser>> = Pager(PagingConfig(pageSize = 10)) { pagination }
+    private var usersPager = UsersPager(repo)
+    private val pager = Pager(PagingConfig(pageSize = 10)) { usersPager }
+
+    var users: Flow<PagingData<GithubUser>> = pager
         .flow
         .cachedIn(viewModelScope)
 
     fun startCollectingUsers() {
         if (collectUsersJob != null) return
-        collectUsersJob = viewModelScope.launch { requestNewUsersFromRepo() }
+        collectUsersJob = viewModelScope.launch {
+            viewModelScope.launch {
+                repo.users.distinctUntilChanged().collect {
+                    if (it.isFailure) {
+                        setNewUiState(isLoading = false, error = it.exceptionOrNull())
+                    } else {
+                        setNewUiState(isLoading = false, error = null)
+                    }
+                }
+            }
+            viewModelScope.launch { requestNewUsersFromRepo() }
+        }
+    }
+
+    fun retryCollectingUsers() {
+        usersPager = UsersPager(repo)
+        viewModelScope.launch { setNewUiState(error = null) }
     }
 
     private suspend fun requestNewUsersFromRepo() {
         setNewUiState(isLoading = true)
-        pagination.requestUsers(uiState.value.page, perPage = 10)
-        setNewUiState(isLoading = false)
-    }
-
-    private suspend fun handleFailure(error: Throwable?) {
-        setNewUiState(isLoading = false, error = error)
+        val response = usersPager.requestUsers(uiState.value.page, perPage = 10)
+        if (response.isFailure) {
+            setNewUiState(isLoading = false, error = response.exceptionOrNull())
+        } else {
+            setNewUiState(isLoading = false, error = null)
+        }
     }
 
     private suspend fun setNewUiState(

@@ -11,18 +11,25 @@ class UsersPager @Inject constructor(
 ) : PagingSource<Int, GithubUser>() {
 
     override fun getRefreshKey(state: PagingState<Int, GithubUser>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
+        return state.anchorPosition?.let {
+            state.closestPageToPosition(it)?.prevKey?.plus(1)
+                ?: state.closestPageToPosition(it)?.nextKey?.minus(1)
         }
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, GithubUser> {
         val pageNumber = params.key ?: 0
-        val users = requestUsers(pageNumber, params.loadSize).toUsers()
+        val response = requestUsers(pageNumber, params.loadSize)
+        if (response.isFailure) return LoadResult.Error(
+            response.exceptionOrNull() ?: UnknownError()
+        )
 
-        val prevKey = if (pageNumber == 0) null else pageNumber
-        val nextKey = if (users.isEmpty()) null else pageNumber + 1
+        val users = response.toUsers()
+        if (users.isEmpty()) return LoadResult.Error(Throwable())
+
+//        val prevKey = if (pageNumber == 0) null else pageNumber
+        val prevKey = if (pageNumber > 0) pageNumber - 1 else null
+        val nextKey = pageNumber + 1
 
         return LoadResult.Page(users, prevKey, nextKey)
     }
