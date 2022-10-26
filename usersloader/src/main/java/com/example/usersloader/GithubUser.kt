@@ -9,8 +9,8 @@ data class GithubUserSearchResponse(
 )
 
 data class GithubUser(
-    @SerializedName("id") var id: Long,
     @SerializedName("login") var login: String,
+    @SerializedName("id") var id: Long,
     @SerializedName("node_id") var nodeId: String,
     @SerializedName("avatar_url") var avatarUrl: String,
     @SerializedName("gravatar_id") var gravatarId: String,
@@ -28,15 +28,4 @@ data class GithubUser(
     @SerializedName("type") var type: String,
     @SerializedName("site_admin") var siteAdmin: Boolean,
     @SerializedName("score") var score: Float,
-    @SerializedName("name") var name: String,
-    @SerializedName("company") var company: String,
-    @SerializedName("blog") var blog: String,
-    @SerializedName("location") var location: String,
-    @SerializedName("email") var email: String,
-    @SerializedName("hireable") var hireable: String,
-    @SerializedName("bio") var bio: String,
-    @SerializedName("public_repos") var publicRepos: Int,
-    @SerializedName("public_gists") var publicGists: Int,
-    @SerializedName("followers") var followers: Int,
-    @SerializedName("following") var following: Int
 )

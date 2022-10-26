@@ -1,26 +1,32 @@
-package com.example.githubusers
+package com.example.githubusers.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.example.usersloader.GithubUser
+import androidx.paging.*
+import com.example.githubusers.repository.NaiveUserPersistence
+import com.example.githubusers.repository.UsersPagingSource
+import com.example.githubusers.repository.room.StorableGithubUser
+import com.example.githubusers.repository.toStorableGithubUsers
 import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val repo: UsersRepository
+    private val repo: UsersRepository,
+    private val userPersistence: NaiveUserPersistence
 ) : ViewModel() {
+
+
+    private var isRefresh = false
 
     private var collectUsersJob: Job? = null
     private val _uiState = MutableStateFlow(OverviewUiState())
@@ -28,10 +34,10 @@ class OverviewViewModel @Inject constructor(
 
     private var usersSource = UsersPagingSource(repo)
     private val pager = Pager(PagingConfig(pageSize = 10)) { usersSource }
-
-    var users: Flow<PagingData<GithubUser>> = pager
+    var users: Flow<PagingData<StorableGithubUser>> = pager
         .flow
         .cachedIn(viewModelScope)
+
 
     fun startCollectingUsers() {
         if (collectUsersJob != null) return
@@ -42,16 +48,26 @@ class OverviewViewModel @Inject constructor(
     }
 
     fun retryCollectingUsers() {
-        viewModelScope.launch { setNewUiState(error = null, isLoading = true) }
+        isRefresh = true
+        viewModelScope.launch {
+            setNewUiState(error = null, isLoading = true)
+        }
         usersSource = UsersPagingSource(repo)
     }
 
     private suspend fun collectUsersFlow() {
         repo.users.distinctUntilChanged().collect {
             if (it.isFailure) {
-                setNewUiState(isLoading = false, error = it.exceptionOrNull())
+                setNewUiState(
+                    isLoading = false,
+                    error = it.exceptionOrNull(),
+                    persistedUsers = userPersistence.restore()
+                )
             } else {
-                setNewUiState(isLoading = false, error = null)
+                if (isRefresh) userPersistence.clearAll()
+                isRefresh = false
+                userPersistence.persist(it.getOrThrow().toStorableGithubUsers())
+                setNewUiState(isLoading = false, error = null, persistedUsers = null)
             }
         }
     }
@@ -59,8 +75,9 @@ class OverviewViewModel @Inject constructor(
     private suspend fun setNewUiState(
         isLoading: Boolean = uiState.value.isLoading,
         error: Throwable? = uiState.value.error,
-        page: Int = uiState.value.page
-    ) = _uiState.emit(OverviewUiState(isLoading, error, page))
+        page: Int = uiState.value.page,
+        persistedUsers: List<StorableGithubUser>? = uiState.value.persistedUsers
+    ) = _uiState.emit(OverviewUiState(isLoading, error, page, persistedUsers))
 
     fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
 }
@@ -68,5 +85,6 @@ class OverviewViewModel @Inject constructor(
 data class OverviewUiState(
     val isLoading: Boolean = false,
     val error: Throwable? = null,
-    val page: Int = 0
+    val page: Int = 0,
+    val persistedUsers: List<StorableGithubUser>? = null
 )

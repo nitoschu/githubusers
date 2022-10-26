@@ -1,5 +1,6 @@
 package com.example.githubusers
 
+import com.example.githubusers.repository.UsersPagingSource
 import com.example.usersloader.GithubUser
 import com.example.usersloader.UsersRepository
 import kotlinx.coroutines.flow.Flow
@@ -57,18 +58,7 @@ val mockGithubUser = GithubUser(
     receivedEventsUrl = "abcd",
     type = "user",
     siteAdmin = true,
-    score = 1f,
-    name = "Bert",
-    company = "Bert Company",
-    blog = "abcd",
-    location = "abcd",
-    email = "abcd",
-    hireable = "false",
-    bio = "abcd",
-    publicRepos = 0,
-    publicGists = 0,
-    followers = 1,
-    following = 1
+    score = 1f
 )
 
 internal fun fakeUserPager() = UsersPagingSource(FakeUsersRepo())

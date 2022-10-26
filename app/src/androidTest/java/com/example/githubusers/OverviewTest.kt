@@ -9,6 +9,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.paging.PagingData
+import com.example.githubusers.view.OverviewScreen
+import com.example.githubusers.view.OverviewUiState
 import com.example.usersloader.GithubUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -69,16 +71,5 @@ val mockGithubUser = GithubUser(
     receivedEventsUrl = "abcd",
     type = "user",
     siteAdmin = true,
-    score = 1f,
-    name = "Bert",
-    company = "Bert Company",
-    blog = "abcd",
-    location = "abcd",
-    email = "abcd",
-    hireable = "false",
-    bio = "abcd",
-    publicRepos = 0,
-    publicGists = 0,
-    followers = 1,
-    following = 1
+    score = 1f
 )

@@ -97,6 +97,12 @@ dependencies {
     kaptAndroidTest 'com.google.dagger:hilt-compiler:2.44'
     testImplementation 'com.google.dagger:hilt-android-testing:2.44'
     kaptTest 'com.google.dagger:hilt-compiler:2.44'
+
+    // Room
+    implementation "androidx.room:room-runtime:2.4.3"
+    kapt "androidx.room:room-compiler:2.4.3"
+    implementation "androidx.room:room-ktx:2.4.3"
+    implementation "androidx.room:room-paging:2.4.3"
 }
 
 // Allow references to generated code

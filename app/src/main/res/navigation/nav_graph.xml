@@ -6,6 +6,6 @@
 
     <fragment
         android:id="@+id/overviewFragment"
-        android:name="com.example.githubusers.OverviewFragment"
+        android:name="com.example.githubusers.view.OverviewFragment"
         android:label="OverviewFragment" />
 </navigation>
