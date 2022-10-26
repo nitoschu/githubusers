@@ -2,21 +2,22 @@ package com.example.githubusers.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.*
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.githubusers.repository.NaiveUserPersistence
 import com.example.githubusers.repository.UsersPagingSource
 import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.githubusers.repository.toStorableGithubUsers
 import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,7 +25,6 @@ class OverviewViewModel @Inject constructor(
     private val repo: UsersRepository,
     private val userPersistence: NaiveUserPersistence
 ) : ViewModel() {
-
 
     private var isRefresh = false
 
@@ -37,7 +37,6 @@ class OverviewViewModel @Inject constructor(
     var users: Flow<PagingData<StorableGithubUser>> = pager
         .flow
         .cachedIn(viewModelScope)
-
 
     fun startCollectingUsers() {
         if (collectUsersJob != null) return
@@ -64,7 +63,9 @@ class OverviewViewModel @Inject constructor(
                     persistedUsers = userPersistence.restore()
                 )
             } else {
-                if (isRefresh) userPersistence.clearAll()
+                if (isRefresh) {
+                    userPersistence.clearAll()
+                }
                 isRefresh = false
                 userPersistence.persist(it.getOrThrow().toStorableGithubUsers())
                 setNewUiState(isLoading = false, error = null, persistedUsers = null)

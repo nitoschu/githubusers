@@ -9,9 +9,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.paging.PagingData
+import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.githubusers.view.OverviewScreen
 import com.example.githubusers.view.OverviewUiState
-import com.example.usersloader.GithubUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Rule
@@ -49,27 +49,11 @@ class OverviewTest {
 @Composable
 private fun OverviewScreenTestInstance(
     uiState: State<OverviewUiState> = mutableStateOf(OverviewUiState()),
-    users: Flow<PagingData<GithubUser>> = flowOf(PagingData.from(listOf(mockGithubUser)))
+    users: Flow<PagingData<StorableGithubUser>> = flowOf(PagingData.from(listOf(mockGithubUser)))
 ) = OverviewScreen(uiState = uiState, pagingUsersData = users, retryLoadingUsers = {}, onErrorShown = {})
 
-val mockGithubUser = GithubUser(
+val mockGithubUser = StorableGithubUser(
     id = 1,
     login = "Bert",
-    nodeId = "abcd",
-    avatarUrl = "abcd",
-    gravatarId = "abcd",
-    url = "abcd",
-    htmlUrl = "abcd",
-    followersUrl = "abcd",
-    followingUrl = "abcd",
-    gistsUrl = "abcd",
-    starredUrl = "abcd",
-    subscriptionsUrl = "abcd",
-    organizationsUrl = "abcd",
-    reposUrl = "abcd",
-    eventsUrl = "abcd",
-    receivedEventsUrl = "abcd",
-    type = "user",
-    siteAdmin = true,
-    score = 1f
+    avatarUrl = "abcd"
 )

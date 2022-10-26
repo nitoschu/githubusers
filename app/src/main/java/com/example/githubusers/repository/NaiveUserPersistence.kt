@@ -5,7 +5,6 @@ import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.githubusers.repository.room.UserDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
 import javax.inject.Inject
 
 interface NaiveUserPersistence {
@@ -18,7 +17,6 @@ class DefaultNaiveUserPersistence @Inject constructor(
     private val database: UserDatabase
 ) : NaiveUserPersistence {
     private val userDao = database.userDao()
-
 
     override suspend fun persist(users: List<StorableGithubUser>) {
         users.forEach { it.persistedAt = System.nanoTime() }
@@ -36,5 +34,4 @@ class DefaultNaiveUserPersistence @Inject constructor(
     override suspend fun clearAll() {
         withContext(Dispatchers.IO) { userDao.clearAll() }
     }
-
 }

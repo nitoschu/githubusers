@@ -27,5 +27,5 @@ data class GithubUser(
     @SerializedName("received_events_url") var receivedEventsUrl: String,
     @SerializedName("type") var type: String,
     @SerializedName("site_admin") var siteAdmin: Boolean,
-    @SerializedName("score") var score: Float,
+    @SerializedName("score") var score: Float
 )

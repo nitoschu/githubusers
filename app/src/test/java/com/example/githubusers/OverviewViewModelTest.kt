@@ -20,7 +20,7 @@ class OverviewViewModelTest {
     @Test
     fun `should not reload while still loading`() = runTest {
         val repo = FakeUsersRepo().apply { loadForever = true }
-        val viewModel = OverviewViewModel(repo)
+        val viewModel = testMe(repo)
         viewModel.startCollectingUsers()
         advanceUntilIdle()
         viewModel.retryCollectingUsers()
@@ -30,7 +30,7 @@ class OverviewViewModelTest {
 
     @Test
     fun `should set loading state when loading`() {
-        val viewModel = OverviewViewModel(FakeUsersRepo())
+        val viewModel = testMe()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
         viewModel.startCollectingUsers()
         Assert.assertTrue(viewModel.uiState.value.isLoading)
@@ -39,7 +39,7 @@ class OverviewViewModelTest {
     @Test
     fun `should set loading state to false when users received`() = runTest {
         val repo = FakeUsersRepo()
-        val viewModel = OverviewViewModel(repo)
+        val viewModel = testMe(repo)
         Assert.assertFalse(viewModel.uiState.value.isLoading)
         launch { viewModel.startCollectingUsers() }
         launch { repo.requestUsers() }
@@ -50,7 +50,7 @@ class OverviewViewModelTest {
     @Test
     fun `should set loading state to false when error received`() = runTest {
         val repo = FakeUsersRepo().apply { returnResultFailure = true }
-        val viewModel = OverviewViewModel(repo)
+        val viewModel = testMe(repo)
         Assert.assertFalse(viewModel.uiState.value.isLoading)
         launch { viewModel.startCollectingUsers() }
         launch { repo.requestUsers() }
@@ -61,7 +61,7 @@ class OverviewViewModelTest {
     @Test
     fun `ViewModel should not manually trigger the paging datasource`() = runTest {
         val repo = FakeUsersRepo()
-        val viewModel = OverviewViewModel(repo)
+        val viewModel = testMe(repo)
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
         viewModel.startCollectingUsers()
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
@@ -71,7 +71,41 @@ class OverviewViewModelTest {
         viewModel.retryCollectingUsers()
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
     }
+
+    @Test
+    fun `new users should be persisted`() = runTest {
+        val persist = FakeUserPersistence()
+        val repo = FakeUsersRepo()
+        val viewModel = testMe(repo, persist)
+        Assert.assertEquals(persist.persistedUsers.size, 0)
+        launch { viewModel.startCollectingUsers() }
+        launch { repo.requestUsers() }
+        advanceUntilIdle()
+        Assert.assertEquals(persist.persistedUsers.size, 1)
+    }
+
+    @Test
+    fun `should emit persisted users on failure`() = runTest {
+        val persist = FakeUserPersistence()
+        val repo = FakeUsersRepo()
+        val viewModel = testMe(repo, persist)
+        launch { viewModel.startCollectingUsers() }
+        launch { repo.requestUsers() }
+        advanceUntilIdle()
+        Assert.assertFalse(viewModel.uiState.value.persistedUsers?.isNotEmpty() == true)
+
+        repo.apply { returnResultFailure = true }
+        launch { viewModel.startCollectingUsers() }
+        launch { repo.requestUsers() }
+        advanceUntilIdle()
+        Assert.assertTrue(viewModel.uiState.value.persistedUsers?.isNotEmpty() == true)
+    }
 }
+
+internal fun testMe(
+    repo: FakeUsersRepo = FakeUsersRepo(),
+    persistence: FakeUserPersistence = FakeUserPersistence()
+) = OverviewViewModel(repo, persistence)
 
 class MainDispatcherExtension(
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()

@@ -1,8 +1,8 @@
 package com.example.githubusers.repository.room
 
-import androidx.room.*
+import androidx.room.* // ktlint-disable no-wildcard-imports
 import androidx.room.OnConflictStrategy.REPLACE
-import java.util.*
+import java.util.* // ktlint-disable no-wildcard-imports
 
 @Entity(tableName = "users")
 data class StorableGithubUser(

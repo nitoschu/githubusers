@@ -22,7 +22,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.example.githubusers.repository.room.StorableGithubUser
-import com.example.usersloader.GithubUser
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import dagger.hilt.android.AndroidEntryPoint
@@ -117,7 +116,6 @@ fun GithubUsersList(
                 LazyColumn() {
                     items(persistedUsers) { User(it) }
                 }
-
             } else {
                 LazyColumn() {
                     items(users) { it?.let { it1 -> User(it1) } }
