@@ -5,6 +5,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 
+/**
+ * An interface for obtaining [GithubUser] from a remote source.
+ * The default implementation will query users from the
+ * <a href="https://docs.github.com/en/rest/search">Github search API</a>.
+ *
+ * Please note that this implementation is not authorizing to the remote source and therefore
+ * subject to <a href="https://docs.github.com/en/rest/rate-limit"Github rate limitation</a>.
+ *
+ * The data in the backend is being updated very quickly, so users might be displayed several times,
+ * especially when there are long pauses between fetches. This effect can be mitigated by
+ * raising the page size.
+ */
 interface UsersRepository {
     val users: Flow<Result<List<GithubUser>>>
     suspend fun requestUsers(page: Int = 0, perPage: Int = 10): Result<List<GithubUser>>

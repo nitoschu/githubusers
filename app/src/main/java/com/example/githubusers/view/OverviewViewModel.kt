@@ -20,6 +20,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * This ViewModel is responsible for delegating requests to fetch Github users from
+ * the remote source and persisting them.
+ *
+ * On a refresh, all currently loaded users will be invalidated and reloaded. That means that
+ * during a refresh, it is easy to hit the rate limitation or the API. However, this way it is
+ * easier for other developers to check this code out and compile it without having to worry
+ * about including project-external Gradle files with authorization information.
+ *
+ * If an error occurs while no users have been loaded yet, persisted users are restored.
+ */
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
     private val repo: UsersRepository,
