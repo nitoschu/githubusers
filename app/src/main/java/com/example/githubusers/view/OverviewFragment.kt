@@ -30,10 +30,12 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
+import coil.compose.rememberAsyncImagePainter
 import com.example.githubusers.R
 import com.example.githubusers.repository.room.StorableGithubUser
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -152,6 +154,10 @@ fun User(
     user: StorableGithubUser,
     onClick: () -> Unit
 ) {
+
+    val navController = rememberNavController()
+
+
     Column(Modifier.clickable { /*nav.navigate()*/ }) {
         Row(
             Modifier
@@ -160,7 +166,7 @@ fun User(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = rememberAsyncImagePainter(user.avatarUrl),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
