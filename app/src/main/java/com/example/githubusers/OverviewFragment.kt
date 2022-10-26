@@ -40,7 +40,7 @@ class OverviewFragment : Fragment() {
             MaterialTheme {
                 OverviewScreen(
                     uiState = viewModel.uiState.collectAsState(),
-                    users = viewModel.users,
+                    pagingUsersData = viewModel.users,
                     retryLoadingUsers = { viewModel.retryCollectingUsers() },
                     onErrorShown = { viewModel.onErrorShown() }
                 )
@@ -57,23 +57,22 @@ class OverviewFragment : Fragment() {
 @Composable
 fun OverviewScreen(
     uiState: State<OverviewUiState>,
-    users: Flow<PagingData<GithubUser>>,
+    pagingUsersData: Flow<PagingData<GithubUser>>,
     retryLoadingUsers: () -> Unit,
     onErrorShown: () -> Unit
 ) {
 
-    val userItems: LazyPagingItems<GithubUser> = users.collectAsLazyPagingItems()
+    val users: LazyPagingItems<GithubUser> = pagingUsersData.collectAsLazyPagingItems()
     val scaffoldState: ScaffoldState = rememberScaffoldState()
 
     Scaffold(scaffoldState = scaffoldState, content = { padding ->
         Column(Modifier.padding(padding)) {
             GithubUsersList(
-                users = userItems,
+                users = users,
                 isRefreshing = uiState.value.isLoading,
                 onRefresh = {
-                    onErrorShown()
                     retryLoadingUsers()
-                    userItems.refresh()
+                    users.refresh()
                 }
             )
             if (uiState.value.error != null) {
@@ -86,9 +85,8 @@ fun OverviewScreen(
                     when (action) {
                         SnackbarResult.Dismissed -> onErrorShown()
                         SnackbarResult.ActionPerformed -> {
-                            onErrorShown()
                             retryLoadingUsers()
-                            userItems.refresh()
+                            users.refresh()
                         }
                     }
                 }
@@ -104,12 +102,11 @@ fun GithubUsersList(
     isRefreshing: Boolean,
     onRefresh: () -> Unit
 ) {
-
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing),
         onRefresh = { onRefresh() }
     ) {
-        if (users.itemCount == 0) {
+        if (users.itemCount == 0 && !isRefreshing) {
             EmptyScreen { onRefresh() }
         } else {
             LazyColumn() {
@@ -125,7 +122,7 @@ fun GithubUsersList(
 fun EmptyScreen(onRefresh: () -> Unit) {
     Column() {
         Text("Github currently has no users :c")
-        Text("Just kidding, click the button to manually refresh.")
+        Text("Just kidding! Click the button to manually refresh!")
         Button(onClick = { onRefresh() }) {
             Text("Refresh")
         }

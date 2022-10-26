@@ -14,6 +14,9 @@ internal class FakeUsersRepo : UsersRepository {
     var returnResultFailure = false
     var requestUsersCalledNumber = 0
 
+    private val success = Result.success(listOf(mockGithubUser))
+    private val failure: Result<List<GithubUser>> = Result.failure(UnknownHostException())
+
     private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
     override val users: Flow<Result<List<GithubUser>>> = _users
 
@@ -22,15 +25,16 @@ internal class FakeUsersRepo : UsersRepository {
         if (isBusyLoading) hasTriedToReloadWhileStillBusy = true
         if (loadForever) {
             isBusyLoading = true
-            return Result.success(listOf(mockGithubUser))
+            return success
         }
 
         if (returnResultFailure) {
-            _users.emit(Result.failure(UnknownHostException()))
-            return Result.failure(UnknownHostException())
+            _users.emit(failure)
+            return failure
         }
 
-        return Result.success(listOf(mockGithubUser))
+        _users.emit(success)
+        return success
     }
 }
 
@@ -67,5 +71,5 @@ val mockGithubUser = GithubUser(
     following = 1
 )
 
-internal fun fakeUserPager() = UsersPager(FakeUsersRepo())
-internal fun fakeUsePager(fakeRepo: FakeUsersRepo) = UsersPager(fakeRepo)
+internal fun fakeUserPager() = UsersPagingSource(FakeUsersRepo())
+internal fun fakeUsePager(fakeRepo: FakeUsersRepo) = UsersPagingSource(fakeRepo)

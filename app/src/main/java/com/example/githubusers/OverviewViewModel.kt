@@ -26,8 +26,8 @@ class OverviewViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OverviewUiState())
     val uiState: StateFlow<OverviewUiState> = _uiState
 
-    private var usersPager = UsersPager(repo)
-    private val pager = Pager(PagingConfig(pageSize = 10)) { usersPager }
+    private var usersSource = UsersPagingSource(repo)
+    private val pager = Pager(PagingConfig(pageSize = 10)) { usersSource }
 
     var users: Flow<PagingData<GithubUser>> = pager
         .flow
@@ -37,33 +37,22 @@ class OverviewViewModel @Inject constructor(
         if (collectUsersJob != null) return
         collectUsersJob = viewModelScope.launch {
             setNewUiState(isLoading = true)
-            viewModelScope.launch {
-                repo.users.distinctUntilChanged().collect {
-                    if (it.isFailure) {
-                        setNewUiState(isLoading = false, error = it.exceptionOrNull())
-                    } else {
-                        setNewUiState(isLoading = false, error = null)
-                    }
-                }
-            }
-            viewModelScope.launch { requestNewUsersFromRepo() }
+            collectUsersFlow()
         }
     }
 
     fun retryCollectingUsers() {
         viewModelScope.launch { setNewUiState(error = null, isLoading = true) }
-        usersPager = UsersPager(repo)
+        usersSource = UsersPagingSource(repo)
     }
 
-    fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
-
-    private suspend fun requestNewUsersFromRepo() {
-        setNewUiState(isLoading = true)
-        val response = usersPager.requestUsers(uiState.value.page, perPage = 10)
-        if (response.isFailure) {
-            setNewUiState(isLoading = false, error = response.exceptionOrNull())
-        } else {
-            setNewUiState(isLoading = false, error = null)
+    private suspend fun collectUsersFlow() {
+        repo.users.distinctUntilChanged().collect {
+            if (it.isFailure) {
+                setNewUiState(isLoading = false, error = it.exceptionOrNull())
+            } else {
+                setNewUiState(isLoading = false, error = null)
+            }
         }
     }
 
@@ -72,6 +61,8 @@ class OverviewViewModel @Inject constructor(
         error: Throwable? = uiState.value.error,
         page: Int = uiState.value.page
     ) = _uiState.emit(OverviewUiState(isLoading, error, page))
+
+    fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
 }
 
 data class OverviewUiState(

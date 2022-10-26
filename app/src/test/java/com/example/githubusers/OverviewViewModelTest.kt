@@ -4,6 +4,7 @@ package com.example.githubusers
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.* // ktlint-disable no-wildcard-imports
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.AfterEachCallback
@@ -21,41 +22,53 @@ class OverviewViewModelTest {
         val viewModel = OverviewViewModel(repo)
         viewModel.startCollectingUsers()
         advanceUntilIdle()
-        viewModel.startCollectingUsers()
+        viewModel.retryCollectingUsers()
         advanceUntilIdle()
         Assert.assertFalse(repo.hasTriedToReloadWhileStillBusy)
     }
 
     @Test
-    fun `should always set loading state to false when results have been received`() = runTest {
-        // Happy case, no error
-        var viewModel = OverviewViewModel(FakeUsersRepo())
-        viewModel.startCollectingUsers()
-        advanceUntilIdle()
+    fun `should set loading state when loading`() {
+        val viewModel = OverviewViewModel(FakeUsersRepo())
         Assert.assertFalse(viewModel.uiState.value.isLoading)
-
-        // Sad case with error
-        val repo = FakeUsersRepo().apply { returnResultFailure = true }
-        viewModel = OverviewViewModel(repo)
         viewModel.startCollectingUsers()
+        Assert.assertTrue(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `should set loading state to false when users received`() = runTest {
+        val repo = FakeUsersRepo()
+        val viewModel = OverviewViewModel(repo)
+        Assert.assertFalse(viewModel.uiState.value.isLoading)
+        launch { viewModel.startCollectingUsers() }
+        launch { repo.requestUsers() }
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
-    fun `collection of users should only be initialized once`() = runTest {
+    fun `should set loading state to false when error received`() = runTest {
+        val repo = FakeUsersRepo().apply { returnResultFailure = true }
+        val viewModel = OverviewViewModel(repo)
+        Assert.assertFalse(viewModel.uiState.value.isLoading)
+        launch { viewModel.startCollectingUsers() }
+        launch { repo.requestUsers() }
+        advanceUntilIdle()
+        Assert.assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `ViewModel should not manually trigger the paging datasource`() = runTest {
         val repo = FakeUsersRepo()
         val viewModel = OverviewViewModel(repo)
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
         viewModel.startCollectingUsers()
-        advanceUntilIdle()
-        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
-        viewModel.startCollectingUsers()
-        advanceUntilIdle()
-        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
-        viewModel.startCollectingUsers()
-        advanceUntilIdle()
-        Assert.assertEquals(repo.requestUsersCalledNumber, 1)
+        Assert.assertEquals(repo.requestUsersCalledNumber, 0)
+
+        viewModel.retryCollectingUsers()
+        Assert.assertEquals(repo.requestUsersCalledNumber, 0)
+        viewModel.retryCollectingUsers()
+        Assert.assertEquals(repo.requestUsersCalledNumber, 0)
     }
 }
 

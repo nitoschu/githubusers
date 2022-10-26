@@ -6,7 +6,7 @@ import com.example.usersloader.GithubUser
 import com.example.usersloader.UsersRepository
 import javax.inject.Inject
 
-class UsersPager @Inject constructor(
+class UsersPagingSource @Inject constructor(
     private val userSource: UsersRepository
 ) : PagingSource<Int, GithubUser>() {
 

@@ -32,9 +32,7 @@ class OverviewTest {
 
     @Test
     fun after_error_resolved_should_show_users() {
-
         val uiState = mutableStateOf(OverviewUiState(error = UnknownError()))
-
         composeTestRule.setContent {
             MaterialTheme {
                 OverviewScreenTestInstance(uiState = remember { uiState })
@@ -50,7 +48,7 @@ class OverviewTest {
 private fun OverviewScreenTestInstance(
     uiState: State<OverviewUiState> = mutableStateOf(OverviewUiState()),
     users: Flow<PagingData<GithubUser>> = flowOf(PagingData.from(listOf(mockGithubUser)))
-) = OverviewScreen(uiState = uiState, users = users, retryLoadingUsers = {}, onErrorShown = {})
+) = OverviewScreen(uiState = uiState, pagingUsersData = users, retryLoadingUsers = {}, onErrorShown = {})
 
 val mockGithubUser = GithubUser(
     id = 1,
