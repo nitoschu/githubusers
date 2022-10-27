@@ -20,7 +20,7 @@ class UsersLoaderTests {
     @Test
     fun `should provide a list of users`() = runTest {
         val source = FakeGithubDataSource()
-        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher(testScheduler))
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
@@ -44,7 +44,7 @@ class UsersLoaderTests {
     @Test
     fun `should provide an error result`() = runTest {
         val source = FakeGithubDataSource(fakeResponse = failure(UnknownHostException()))
-        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher(testScheduler))
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
@@ -68,7 +68,7 @@ class UsersLoaderTests {
     fun `should provide an empty list of users`() = runTest {
         val testData = Result.success(emptyList<GithubUser>())
         val source = FakeGithubDataSource(testData)
-        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher(testScheduler))
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -90,7 +90,7 @@ class UsersLoaderTests {
     @Test
     fun `should use pagination`() = runTest {
         val source = FakeGithubDataSource()
-        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher(testScheduler))
         val page = 4
         val perPage = 17
         repo.requestUsers(page = page, perPage = perPage)

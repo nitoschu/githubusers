@@ -9,6 +9,8 @@ data class StorableGithubUser(
     @PrimaryKey(autoGenerate = false) val id: Long,
     @ColumnInfo(name = "login") val login: String,
     @ColumnInfo(name = "avatar_url") val avatarUrl: String,
+    @ColumnInfo(name = "html_url") val htmlUrl: String,
+    @ColumnInfo(name = "score") val score: Float,
     @ColumnInfo(name = "persisted_at") var persistedAt: Long? = null
 )
 

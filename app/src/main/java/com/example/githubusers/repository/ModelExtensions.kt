@@ -6,7 +6,9 @@ import com.example.usersloader.GithubUser
 fun GithubUser.toStorableGithubUser() = StorableGithubUser(
     id = id,
     login = login,
-    avatarUrl = avatarUrl
+    avatarUrl = avatarUrl,
+    htmlUrl = htmlUrl,
+    score = score
 )
 
 fun List<GithubUser>.toStorableGithubUsers(): List<StorableGithubUser> {

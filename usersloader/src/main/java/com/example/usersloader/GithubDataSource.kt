@@ -35,7 +35,7 @@ internal object DefaultGithubDataSource : GithubDataSource {
             .build()
     }
 
-    private fun getClient(allowLogging: Boolean = false): OkHttpClient {
+    private fun getClient(allowLogging: Boolean = true): OkHttpClient {
         val level = if (allowLogging) {
             HttpLoggingInterceptor.Level.BODY
         } else {

@@ -55,5 +55,7 @@ private fun OverviewScreenTestInstance(
 val mockGithubUser = StorableGithubUser(
     id = 1,
     login = "Bert",
-    avatarUrl = "abcd"
+    avatarUrl = "abcd",
+    htmlUrl = "wwww",
+    score = 1f
 )

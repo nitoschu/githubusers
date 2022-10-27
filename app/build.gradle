@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -72,6 +73,7 @@ dependencies {
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     implementation "androidx.navigation:navigation-compose:$nav_version"
     androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
+
 
     // Jetpack Compose
     implementation 'androidx.compose.material:material:1.2.1'

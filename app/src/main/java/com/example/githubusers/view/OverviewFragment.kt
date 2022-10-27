@@ -4,30 +4,32 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.* // ktlint-disable no-wildcard-imports
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.* // ktlint-disable no-wildcard-imports
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -56,14 +58,21 @@ class OverviewFragment : Fragment() {
                     pagingUsersData = viewModel.users,
                     retryLoadingUsers = { viewModel.retryCollectingUsers() },
                     onErrorShown = { viewModel.onErrorShown() },
-                    onUserClick = { navigate() }
+                    onUserClick = { navigate(it) }
                 )
             }
         }
     }
 
-    private fun navigate() {
-
+    private fun navigate(user: StorableGithubUser) {
+        val directions = OverviewFragmentDirections.actionOverviewFragmentToUserDetailsFragment(
+            login = user.login,
+            avatarUrl = user.avatarUrl,
+            htmlUrl = user.htmlUrl,
+            score = user.score,
+            id = user.id
+        )
+        findNavController().navigate(directions)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,7 +87,7 @@ fun OverviewScreen(
     pagingUsersData: Flow<PagingData<StorableGithubUser>>,
     retryLoadingUsers: () -> Unit,
     onErrorShown: () -> Unit,
-    onUserClick: () -> Unit
+    onUserClick: (StorableGithubUser) -> Unit
 ) {
 
     val users: LazyPagingItems<StorableGithubUser> = pagingUsersData.collectAsLazyPagingItems()
@@ -123,7 +132,7 @@ fun GithubUsersList(
     persistedUsers: List<StorableGithubUser>?,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onUserClick: () -> Unit,
+    onUserClick: (StorableGithubUser) -> Unit
 ) {
     SwipeRefresh(
         state = rememberSwipeRefreshState(isRefreshing),
@@ -148,13 +157,10 @@ fun GithubUsersList(
 @Composable
 fun User(
     user: StorableGithubUser,
-    onClick: () -> Unit
+    onNavigate: (StorableGithubUser) -> Unit
 ) {
 
-    val navController = rememberNavController()
-
-
-    Column(Modifier.clickable { /*nav.navigate()*/ }) {
+    Column(Modifier.clickable { onNavigate(user) }) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -185,14 +191,14 @@ fun EmptyScreen(onRefresh: () -> Unit) {
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text("Oh no! D:", fontSize = 48.sp)
         Spacer(modifier = Modifier.height(32.dp))
         Text("Github currently has no users.")
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Just kidding! Click the button to manually refresh!")
+        Text("Just kidding! Click the button to manually refresh!", textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = { onRefresh() }) {
             Text("Refresh")
@@ -203,5 +209,7 @@ fun EmptyScreen(onRefresh: () -> Unit) {
 @Preview(widthDp = 400, heightDp = 100, showBackground = true)
 @Composable
 fun UserPreview() {
-    User(StorableGithubUser(1234, "Gerhard", "---"), onClick = {})
+    User(StorableGithubUser(
+        1234, "Gerhard", "---", htmlUrl = "html", score = 1f), onNavigate = {}
+    )
 }
