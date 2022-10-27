@@ -38,6 +38,7 @@ class OverviewViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var isRefresh = false
+    private var hasLoadedUsers = false
 
     private var collectUsersJob: Job? = null
     private val _uiState = MutableStateFlow(OverviewUiState())
@@ -68,16 +69,18 @@ class OverviewViewModel @Inject constructor(
     private suspend fun collectUsersFlow() {
         repo.users.distinctUntilChanged().collect {
             if (it.isFailure) {
+                val persistedUsers = if (!hasLoadedUsers) userPersistence.restore() else null
                 setNewUiState(
                     isLoading = false,
                     error = it.exceptionOrNull(),
-                    persistedUsers = userPersistence.restore()
+                    persistedUsers = persistedUsers
                 )
             } else {
                 if (isRefresh) {
                     userPersistence.clearAll()
                 }
                 isRefresh = false
+                hasLoadedUsers = true
                 userPersistence.persist(it.getOrThrow().toStorableGithubUsers())
                 setNewUiState(isLoading = false, error = null, persistedUsers = null)
             }
