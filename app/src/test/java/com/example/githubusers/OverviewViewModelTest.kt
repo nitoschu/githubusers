@@ -83,23 +83,6 @@ class OverviewViewModelTest {
         advanceUntilIdle()
         Assert.assertEquals(persist.persistedUsers.size, 1)
     }
-
-    @Test
-    fun `should emit persisted users on failure`() = runTest {
-        val persist = FakeUserPersistence()
-        val repo = FakeUsersRepo()
-        val viewModel = testMe(repo, persist)
-        launch { viewModel.startCollectingUsers() }
-        launch { repo.requestUsers() }
-        advanceUntilIdle()
-        Assert.assertFalse(viewModel.uiState.value.persistedUsers?.isNotEmpty() == true)
-
-        repo.apply { returnResultFailure = true }
-        launch { viewModel.startCollectingUsers() }
-        launch { repo.requestUsers() }
-        advanceUntilIdle()
-        Assert.assertTrue(viewModel.uiState.value.persistedUsers?.isNotEmpty() == true)
-    }
 }
 
 internal fun testMe(

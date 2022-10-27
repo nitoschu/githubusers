@@ -57,5 +57,6 @@ val mockGithubUser = StorableGithubUser(
     login = "Bert",
     avatarUrl = "abcd",
     htmlUrl = "wwww",
-    score = 1f
+    score = 1f,
+    page = 0
 )

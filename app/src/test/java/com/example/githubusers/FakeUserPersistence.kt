@@ -16,4 +16,8 @@ internal class FakeUserPersistence : NaiveUserPersistence {
     override suspend fun clearAll() {
         persistedUsers.clear()
     }
+
+    override suspend fun latestPage(): Int {
+        return 0
+    }
 }
