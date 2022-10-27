@@ -3,7 +3,7 @@ package com.example.githubusers.repository
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.githubusers.repository.room.StorableGithubUser
-import com.example.usersloader.GithubUser
+import com.example.usersloader.api.GithubUser
 import com.example.usersloader.UsersRepository
 import javax.inject.Inject
 

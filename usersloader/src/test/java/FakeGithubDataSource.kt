@@ -1,5 +1,5 @@
 import com.example.usersloader.GithubDataSource
-import com.example.usersloader.GithubUser
+import com.example.usersloader.api.GithubUser
 
 class FakeGithubDataSource(
     val fakeResponse: Result<List<GithubUser>> = Result.success(listOf(mockGithubUser))

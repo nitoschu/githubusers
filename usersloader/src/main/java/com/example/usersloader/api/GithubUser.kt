@@ -1,8 +1,8 @@
-package com.example.usersloader
+package com.example.usersloader.api
 
 import com.google.gson.annotations.SerializedName
 
-data class GithubUserSearchResponse(
+internal data class GithubUserSearchResponse(
     @SerializedName("total_count") var totalCount: Int,
     @SerializedName("incomplete_results") var incompleteResults: Boolean,
     @SerializedName("items") var items: List<GithubUser>

@@ -1,7 +1,7 @@
 package com.example.githubusers.repository
 
 import com.example.githubusers.repository.room.StorableGithubUser
-import com.example.usersloader.GithubUser
+import com.example.usersloader.api.GithubUser
 
 fun GithubUser.toStorableGithubUser(page: Int) = StorableGithubUser(
     id = id,

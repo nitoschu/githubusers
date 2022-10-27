@@ -1,7 +1,7 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
 import com.example.usersloader.DefaultUsersRepo
-import com.example.usersloader.GithubUser
+import com.example.usersloader.api.GithubUser
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch

@@ -1,7 +1,7 @@
 package com.example.githubusers
 
 import com.example.githubusers.repository.UsersPagingSource
-import com.example.usersloader.GithubUser
+import com.example.usersloader.api.GithubUser
 import com.example.usersloader.UsersRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow

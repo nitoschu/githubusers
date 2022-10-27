@@ -1,5 +1,6 @@
 package com.example.usersloader
 
+import com.example.usersloader.api.GithubUser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -7,7 +8,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 
 /**
- * An interface for obtaining [GithubUser] from a remote source.
+ * An interface for obtaining [GithubUser]s from a remote source.
  * The default implementation will query users from the
  * <a href="https://docs.github.com/en/rest/search">Github search API</a>.
  *

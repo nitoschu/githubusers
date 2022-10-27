@@ -1,6 +1,8 @@
 package com.example.usersloader
 
 import com.example.usersloader.api.GithubApiDefinition
+import com.example.usersloader.api.GithubUser
+import com.example.usersloader.api.GithubUserSearchResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -10,33 +12,30 @@ import java.net.UnknownHostException
 
 internal object DefaultGithubDataSource : GithubDataSource {
 
-    private val api = getRetrofit().create(GithubApiDefinition::class.java)
+    private val api = buildRetrofit().create(GithubApiDefinition::class.java)
 
     override suspend fun queryUsers(page: Int, perPage: Int) = try {
-        val response = api.getUsers(page = page, perPage = perPage)
-        handleResponse(response)
+        api.getUserSearchResponse(page = page, perPage = perPage).toGithubUsers()
     } catch (e: UnknownHostException) {
         Result.failure(e)
     }
 
-    private fun handleResponse(response: retrofit2.Response<GithubUserSearchResponse>):
-            Result<List<GithubUser>> {
-        return if (response.isSuccessful) {
-            Result.success(response.body()?.items ?: emptyList())
+    private fun retrofit2.Response<GithubUserSearchResponse>.toGithubUsers() =
+        if (isSuccessful) {
+            Result.success(body()?.items ?: emptyList())
         } else {
-            Result.failure(IOException(response.errorBody()?.string() ?: "An error occurred"))
+            Result.failure(IOException(errorBody()?.string() ?: "An error occurred"))
         }
-    }
 
-    private fun getRetrofit(): Retrofit {
+    private fun buildRetrofit(): Retrofit {
         return Retrofit.Builder()
             .baseUrl(GITHUB_API)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(getClient())
+            .client(buildClient())
             .build()
     }
 
-    private fun getClient(allowLogging: Boolean = true): OkHttpClient {
+    private fun buildClient(allowLogging: Boolean = false): OkHttpClient {
         val level = if (allowLogging) {
             HttpLoggingInterceptor.Level.BODY
         } else {
