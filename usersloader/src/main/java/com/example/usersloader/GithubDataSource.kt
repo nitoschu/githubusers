@@ -1,5 +1,6 @@
 package com.example.usersloader
 
+import com.example.usersloader.api.GithubApiDefinition
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,7 +10,7 @@ import java.net.UnknownHostException
 
 internal object DefaultGithubDataSource : GithubDataSource {
 
-    private val api = getRetrofit().create(GithubApi::class.java)
+    private val api = getRetrofit().create(GithubApiDefinition::class.java)
 
     override suspend fun queryUsers(page: Int, perPage: Int) = try {
         val response = api.getUsers(page = page, perPage = perPage)

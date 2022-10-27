@@ -62,7 +62,7 @@ class OverviewViewModel @Inject constructor(
 
         collectUsersJob = viewModelScope.launch {
             setNewUiState(isLoading = true)
-            repo.users.distinctUntilChanged().collect {
+            repo.usersResults.distinctUntilChanged().collect {
                 if (it.isFailure) {
                     restorePersistedUsersIfNecessary(it)
                 } else {

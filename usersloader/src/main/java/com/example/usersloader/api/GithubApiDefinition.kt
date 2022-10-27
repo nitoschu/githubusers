@@ -1,9 +1,10 @@
-package com.example.usersloader
+package com.example.usersloader.api
 
+import com.example.usersloader.GithubUserSearchResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-internal interface GithubApi {
+internal interface GithubApiDefinition {
 
     @GET("search/users")
     suspend fun getUsers(

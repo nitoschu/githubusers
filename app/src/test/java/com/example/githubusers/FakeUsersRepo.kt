@@ -19,7 +19,7 @@ internal class FakeUsersRepo : UsersRepository {
     private val failure: Result<List<GithubUser>> = Result.failure(UnknownHostException())
 
     private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
-    override val users: Flow<Result<List<GithubUser>>> = _users
+    override val usersResults: Flow<Result<List<GithubUser>>> = _users
 
     override suspend fun requestUsers(page: Int, perPage: Int): Result<List<GithubUser>> {
         requestUsersCalledNumber++

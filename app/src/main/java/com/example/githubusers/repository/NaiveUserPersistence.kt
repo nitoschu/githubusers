@@ -15,6 +15,12 @@ interface NaiveUserPersistence {
     suspend fun latestPage(): Int
 }
 
+/**
+ * A naive implementation so that the app can be used while offline.
+ * I originally tried to achieve this with Jetpack RemoteMediator, but it wouldn't react to
+ * overscroll of the users list. I wasted more than 6 hours on that. Kind of my own fault
+ * though, RemoteMediator is still in alpha.
+ */
 class DefaultNaiveUserPersistence @Inject constructor(
     private val database: UserDatabase,
     private val dispatcher: CoroutineDispatcher

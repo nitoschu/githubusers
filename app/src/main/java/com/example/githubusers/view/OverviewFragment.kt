@@ -191,7 +191,7 @@ fun EmptyScreen(onRefresh: () -> Unit) {
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         Text("Oh no! D:", fontSize = 48.sp)
         Spacer(modifier = Modifier.height(32.dp))
@@ -210,6 +210,6 @@ fun EmptyScreen(onRefresh: () -> Unit) {
 @Composable
 fun UserPreview() {
     User(StorableGithubUser(
-        1234, "Gerhard", "---", htmlUrl = "html", score = 1f, page = 0), onNavigate = {},
+        1234, "Gerhard", "---", htmlUrl = "html", score = 1f, page = 0), onNavigate = {}
     )
 }

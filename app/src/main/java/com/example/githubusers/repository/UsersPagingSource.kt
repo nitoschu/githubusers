@@ -25,7 +25,7 @@ class UsersPagingSource @Inject constructor(
             response.exceptionOrNull() ?: UnknownError("Unknown error")
         )
 
-        val users = response.toUsers().toStorableGithubUsers(pageNumber+1)
+        val users = response.toUsers().toStorableGithubUsers(pageNumber + 1)
         if (users.isEmpty()) return LoadResult.Error(Throwable())
 
         val prevKey = if (pageNumber > 0) pageNumber - 1 else null
@@ -37,6 +37,6 @@ class UsersPagingSource @Inject constructor(
     private fun Result<List<GithubUser>>.toUsers() = if (isSuccess) {
         getOrNull() ?: emptyList()
     } else {
-        emptyList()
+        emptyList() // The ViewModel decides how to handle errors.
     }
 }

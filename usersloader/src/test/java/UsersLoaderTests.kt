@@ -24,7 +24,7 @@ class UsersLoaderTests {
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
-            repo.users.toList(results)
+            repo.usersResults.toList(results)
         }
 
         repo.requestUsers()
@@ -48,7 +48,7 @@ class UsersLoaderTests {
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
-            repo.users.toList(results)
+            repo.usersResults.toList(results)
         }
 
         repo.requestUsers()
@@ -72,7 +72,7 @@ class UsersLoaderTests {
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-            repo.users.toList(results)
+            repo.usersResults.toList(results)
         }
 
         repo.requestUsers()

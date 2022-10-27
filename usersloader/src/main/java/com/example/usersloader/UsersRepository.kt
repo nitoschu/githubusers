@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
  * raising the page size.
  */
 interface UsersRepository {
-    val users: Flow<Result<List<GithubUser>>>
+    val usersResults: Flow<Result<List<GithubUser>>>
     suspend fun requestUsers(page: Int = 0, perPage: Int = 10): Result<List<GithubUser>>
 }
 
@@ -28,14 +28,14 @@ class DefaultUsersRepo(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : UsersRepository {
 
-    private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
-    override val users: Flow<Result<List<GithubUser>>> = _users
+    private val _usersResults = MutableSharedFlow<Result<List<GithubUser>>>()
+    override val usersResults: Flow<Result<List<GithubUser>>> = _usersResults
 
     override suspend fun requestUsers(page: Int, perPage: Int): Result<List<GithubUser>> {
         val result = withContext(dispatcher) {
             return@withContext githubSource.queryUsers(page, perPage)
         }
-        _users.emit(result)
+        _usersResults.emit(result)
         return result
     }
 }
