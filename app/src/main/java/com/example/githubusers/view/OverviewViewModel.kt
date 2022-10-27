@@ -10,6 +10,7 @@ import com.example.githubusers.repository.NaiveUserPersistence
 import com.example.githubusers.repository.UsersPagingSource
 import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.githubusers.repository.toStorableGithubUsers
+import com.example.usersloader.GithubUser
 import com.example.usersloader.UsersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -25,11 +26,12 @@ import javax.inject.Inject
  * the remote source and persisting them.
  *
  * On a refresh, all currently loaded users will be invalidated and reloaded. That means that
- * during a refresh, it is easy to hit the rate limitation or the API. However, this way it is
+ * during a refresh, it is easy to hit the rate limitation of the API. However, this way it is
  * easier for other developers to check this code out and compile it without having to worry
- * about including project-external Gradle files with authorization information.
+ * about including project-external files with authorization information.
  *
- * If an error occurs while no users have been loaded yet, persisted users are restored.
+ * If an error occurs while no users have been loaded yet, persisted users are restored. Otherwise
+ * the app user will be able to scroll through the current users as they are loaded in RAM.
  */
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
@@ -37,70 +39,78 @@ class OverviewViewModel @Inject constructor(
     private val userPersistence: NaiveUserPersistence
 ) : ViewModel() {
 
-    private var isRefresh = false
-    private var hasLoadedUsers = false
-
-    private var collectUsersJob: Job? = null
-    private val _uiState = MutableStateFlow(OverviewUiState())
-    val uiState: StateFlow<OverviewUiState> = _uiState
-
+    // Jetpack Pager setup, the Flow of PagingData is collected by the Composables.
     private var usersSource = UsersPagingSource(repo)
     private val pager = Pager(PagingConfig(pageSize = 10)) { usersSource }
     var users: Flow<PagingData<StorableGithubUser>> = pager
         .flow
         .cachedIn(viewModelScope)
 
-    fun startCollectingUsers() {
+    private var collectUsersJob: Job? = null
+    private val _uiState = MutableStateFlow(OverviewUiState())
+    val uiState: StateFlow<OverviewUiState> = _uiState
+
+    private var isRefresh = false
+    private var hasLoadedUsers = false
+
+    /*
+     * As handling PagingData manually is a hassle, we collect directly from
+     * the repo so that we can persist users and handle errors.
+     */
+    fun collectUserResultsFromRepo() {
         if (collectUsersJob != null) return
+
         collectUsersJob = viewModelScope.launch {
             setNewUiState(isLoading = true)
-            collectUsersFlow()
+            repo.users.distinctUntilChanged().collect {
+                if (it.isFailure) {
+                    restorePersistedUsersIfNecessary(it)
+                } else {
+                    persistUsersAndUpdateUi(it)
+                }
+            }
         }
     }
 
     fun retryCollectingUsers() {
         isRefresh = true
-        viewModelScope.launch {
-            setNewUiState(error = null, isLoading = true)
-        }
+        viewModelScope.launch { setNewUiState(error = null, isLoading = true) }
         usersSource = UsersPagingSource(repo)
     }
 
-    private suspend fun collectUsersFlow() {
-        repo.users.distinctUntilChanged().collect {
-            if (it.isFailure) {
-                val persistedUsers = if (!hasLoadedUsers) userPersistence.restore() else null
-                setNewUiState(
-                    isLoading = false,
-                    error = it.exceptionOrNull(),
-                    persistedUsers = persistedUsers
-                )
-            } else {
-                if (isRefresh) {
-                    userPersistence.clearAll()
-                }
-                isRefresh = false
-                hasLoadedUsers = true
-                val newPage = userPersistence.latestPage()+1
-                userPersistence.persist(it.getOrThrow().toStorableGithubUsers(newPage))
-                setNewUiState(isLoading = false, error = null, persistedUsers = null)
-            }
-        }
+    private suspend fun restorePersistedUsersIfNecessary(result: Result<List<GithubUser>>) {
+        val persistedUsers = if (!hasLoadedUsers) userPersistence.restore() else null
+        setNewUiState(
+            isLoading = false,
+            error = result.exceptionOrNull(),
+            persistedUsers = persistedUsers
+        )
+    }
+
+    private suspend fun persistUsersAndUpdateUi(result: Result<List<GithubUser>>) {
+        if (isRefresh) { userPersistence.clearAll() }
+        isRefresh = false
+        hasLoadedUsers = true
+        persistNewUsers(result)
+        setNewUiState(isLoading = false, error = null, persistedUsers = null)
+    }
+
+    private suspend fun persistNewUsers(result: Result<List<GithubUser>>) {
+        val newPage = userPersistence.latestPage() + 1
+        userPersistence.persist(result.getOrThrow().toStorableGithubUsers(newPage))
     }
 
     private suspend fun setNewUiState(
         isLoading: Boolean = uiState.value.isLoading,
         error: Throwable? = uiState.value.error,
-        page: Int = uiState.value.page,
         persistedUsers: List<StorableGithubUser>? = uiState.value.persistedUsers
-    ) = _uiState.emit(OverviewUiState(isLoading, error, page, persistedUsers))
+    ) = _uiState.emit(OverviewUiState(isLoading, error, persistedUsers))
 
     fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
 }
 
 data class OverviewUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val error: Throwable? = null,
-    val page: Int = 0,
     val persistedUsers: List<StorableGithubUser>? = null
 )

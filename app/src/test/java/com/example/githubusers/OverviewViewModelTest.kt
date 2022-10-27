@@ -21,7 +21,7 @@ class OverviewViewModelTest {
     fun `should not reload while still loading`() = runTest {
         val repo = FakeUsersRepo().apply { loadForever = true }
         val viewModel = testMe(repo)
-        viewModel.startCollectingUsers()
+        viewModel.collectUserResultsFromRepo()
         advanceUntilIdle()
         viewModel.retryCollectingUsers()
         advanceUntilIdle()
@@ -31,8 +31,8 @@ class OverviewViewModelTest {
     @Test
     fun `should set loading state when loading`() {
         val viewModel = testMe()
-        Assert.assertFalse(viewModel.uiState.value.isLoading)
-        viewModel.startCollectingUsers()
+        Assert.assertTrue(viewModel.uiState.value.isLoading)
+        viewModel.collectUserResultsFromRepo()
         Assert.assertTrue(viewModel.uiState.value.isLoading)
     }
 
@@ -40,8 +40,7 @@ class OverviewViewModelTest {
     fun `should set loading state to false when users received`() = runTest {
         val repo = FakeUsersRepo()
         val viewModel = testMe(repo)
-        Assert.assertFalse(viewModel.uiState.value.isLoading)
-        launch { viewModel.startCollectingUsers() }
+        launch { viewModel.collectUserResultsFromRepo() }
         launch { repo.requestUsers() }
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
@@ -51,8 +50,7 @@ class OverviewViewModelTest {
     fun `should set loading state to false when error received`() = runTest {
         val repo = FakeUsersRepo().apply { returnResultFailure = true }
         val viewModel = testMe(repo)
-        Assert.assertFalse(viewModel.uiState.value.isLoading)
-        launch { viewModel.startCollectingUsers() }
+        launch { viewModel.collectUserResultsFromRepo() }
         launch { repo.requestUsers() }
         advanceUntilIdle()
         Assert.assertFalse(viewModel.uiState.value.isLoading)
@@ -63,7 +61,7 @@ class OverviewViewModelTest {
         val repo = FakeUsersRepo()
         val viewModel = testMe(repo)
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
-        viewModel.startCollectingUsers()
+        viewModel.collectUserResultsFromRepo()
         Assert.assertEquals(repo.requestUsersCalledNumber, 0)
 
         viewModel.retryCollectingUsers()
@@ -78,7 +76,7 @@ class OverviewViewModelTest {
         val repo = FakeUsersRepo()
         val viewModel = testMe(repo, persist)
         Assert.assertEquals(persist.persistedUsers.size, 0)
-        launch { viewModel.startCollectingUsers() }
+        launch { viewModel.collectUserResultsFromRepo() }
         launch { repo.requestUsers() }
         advanceUntilIdle()
         Assert.assertEquals(persist.persistedUsers.size, 1)

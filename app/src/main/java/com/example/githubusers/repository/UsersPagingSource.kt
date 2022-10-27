@@ -20,7 +20,7 @@ class UsersPagingSource @Inject constructor(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, StorableGithubUser> {
         val pageNumber = params.key ?: 0
-        val response = requestUsers(pageNumber, params.loadSize)
+        val response = userSource.requestUsers(pageNumber, params.loadSize)
         if (response.isFailure) return LoadResult.Error(
             response.exceptionOrNull() ?: UnknownError("Unknown error")
         )
@@ -39,6 +39,4 @@ class UsersPagingSource @Inject constructor(
     } else {
         emptyList()
     }
-
-    suspend fun requestUsers(page: Int, perPage: Int) = userSource.requestUsers(page, perPage)
 }
