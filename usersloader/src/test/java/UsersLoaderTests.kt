@@ -5,6 +5,7 @@ import com.example.usersloader.GithubUser
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -19,7 +20,7 @@ class UsersLoaderTests {
     @Test
     fun `should provide a list of users`() = runTest {
         val source = FakeGithubDataSource()
-        val repo = DefaultUsersRepo(source)
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
@@ -33,8 +34,8 @@ class UsersLoaderTests {
         assertEquals(true, result.isSuccess)
         assertEquals(false, result.isFailure)
 
-        val user: GithubUser = source.fakeResponse.getOrNull()!![0]
-        val testObject: GithubUser = result.getOrNull()!![0]
+        val user = source.fakeResponse.getOrNull()!![0]
+        val testObject = result.getOrNull()!![0]
         assertEquals(user.login, testObject.login)
 
         collectJob.cancel()
@@ -43,7 +44,7 @@ class UsersLoaderTests {
     @Test
     fun `should provide an error result`() = runTest {
         val source = FakeGithubDataSource(fakeResponse = failure(UnknownHostException()))
-        val repo = DefaultUsersRepo(source)
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch() {
@@ -67,7 +68,7 @@ class UsersLoaderTests {
     fun `should provide an empty list of users`() = runTest {
         val testData = Result.success(emptyList<GithubUser>())
         val source = FakeGithubDataSource(testData)
-        val repo = DefaultUsersRepo(source)
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
         val results = mutableListOf<Result<List<GithubUser>>>()
 
         val collectJob = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -89,7 +90,7 @@ class UsersLoaderTests {
     @Test
     fun `should use pagination`() = runTest {
         val source = FakeGithubDataSource()
-        val repo = DefaultUsersRepo(source)
+        val repo = DefaultUsersRepo(source, dispatcher = StandardTestDispatcher())
         val page = 4
         val perPage = 17
         repo.requestUsers(page = page, perPage = perPage)

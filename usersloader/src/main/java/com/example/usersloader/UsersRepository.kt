@@ -1,5 +1,6 @@
 package com.example.usersloader
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,14 +24,15 @@ interface UsersRepository {
 }
 
 class DefaultUsersRepo(
-    private val githubSource: GithubDataSource = DefaultGithubDataSource
+    private val githubSource: GithubDataSource = DefaultGithubDataSource,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : UsersRepository {
 
     private val _users = MutableSharedFlow<Result<List<GithubUser>>>()
     override val users: Flow<Result<List<GithubUser>>> = _users
 
     override suspend fun requestUsers(page: Int, perPage: Int): Result<List<GithubUser>> {
-        val result = withContext(Dispatchers.IO) {
+        val result = withContext(dispatcher) {
             return@withContext githubSource.queryUsers(page, perPage)
         }
         _users.emit(result)

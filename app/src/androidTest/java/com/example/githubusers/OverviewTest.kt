@@ -50,7 +50,7 @@ class OverviewTest {
 private fun OverviewScreenTestInstance(
     uiState: State<OverviewUiState> = mutableStateOf(OverviewUiState()),
     users: Flow<PagingData<StorableGithubUser>> = flowOf(PagingData.from(listOf(mockGithubUser)))
-) = OverviewScreen(uiState = uiState, pagingUsersData = users, retryLoadingUsers = {}, onErrorShown = {})
+) = OverviewScreen(uiState = uiState, pagingUsersData = users, retryLoadingUsers = {}, onErrorShown = {}, onUserClick = {})
 
 val mockGithubUser = StorableGithubUser(
     id = 1,
