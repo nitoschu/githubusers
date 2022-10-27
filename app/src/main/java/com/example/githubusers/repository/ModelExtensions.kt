@@ -3,16 +3,18 @@ package com.example.githubusers.repository
 import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.usersloader.GithubUser
 
-fun GithubUser.toStorableGithubUser() = StorableGithubUser(
+fun GithubUser.toStorableGithubUser(page: Int) = StorableGithubUser(
     id = id,
     login = login,
     avatarUrl = avatarUrl,
     htmlUrl = htmlUrl,
-    score = score
+    score = score,
+    page = page
 )
 
-fun List<GithubUser>.toStorableGithubUsers(): List<StorableGithubUser> {
+fun List<GithubUser>.toStorableGithubUsers(firstPage: Int): List<StorableGithubUser> {
     val result = mutableListOf<StorableGithubUser>()
-    forEach { user -> result.add(user.toStorableGithubUser()) }
+    var i = firstPage
+    forEach { user -> result.add(user.toStorableGithubUser(++i)) }
     return result.toList()
 }

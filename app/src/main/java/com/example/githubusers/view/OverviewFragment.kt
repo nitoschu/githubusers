@@ -210,6 +210,6 @@ fun EmptyScreen(onRefresh: () -> Unit) {
 @Composable
 fun UserPreview() {
     User(StorableGithubUser(
-        1234, "Gerhard", "---", htmlUrl = "html", score = 1f), onNavigate = {}
+        1234, "Gerhard", "---", htmlUrl = "html", score = 1f, page = 0), onNavigate = {},
     )
 }

@@ -81,7 +81,8 @@ class OverviewViewModel @Inject constructor(
                 }
                 isRefresh = false
                 hasLoadedUsers = true
-                userPersistence.persist(it.getOrThrow().toStorableGithubUsers())
+                val newPage = userPersistence.latestPage()+1
+                userPersistence.persist(it.getOrThrow().toStorableGithubUsers(newPage))
                 setNewUiState(isLoading = false, error = null, persistedUsers = null)
             }
         }

@@ -13,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 
 @Module(includes = [RepositoryModule.Declarations::class])
 @InstallIn(ViewModelComponent::class)
@@ -36,4 +37,7 @@ object RepositoryModule {
         appContext,
         UserDatabase::class.java, "user-database"
     ).build()
+
+    @Provides
+    fun provideIODispatcher() = Dispatchers.IO
 }

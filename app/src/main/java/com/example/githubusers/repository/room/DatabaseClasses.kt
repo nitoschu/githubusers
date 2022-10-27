@@ -11,7 +11,7 @@ data class StorableGithubUser(
     @ColumnInfo(name = "avatar_url") val avatarUrl: String,
     @ColumnInfo(name = "html_url") val htmlUrl: String,
     @ColumnInfo(name = "score") val score: Float,
-    @ColumnInfo(name = "persisted_at") var persistedAt: Long? = null
+    @ColumnInfo(name = "page") var page: Int
 )
 
 @Dao
@@ -22,11 +22,14 @@ interface UserDao {
     @Insert(onConflict = REPLACE)
     suspend fun insert(user: StorableGithubUser)
 
-    @Query("SELECT * FROM users ORDER BY persisted_at DESC")
+    @Query("SELECT * FROM users ORDER BY page ASC")
     fun getAll(): List<StorableGithubUser>
 
     @Query("DELETE FROM users")
     suspend fun clearAll()
+
+    @Query("SELECT MAX(page) FROM users")
+    fun getLatestPage(): Int
 }
 
 @Database(entities = [StorableGithubUser::class], version = 1)
