@@ -4,7 +4,6 @@ import androidx.room.withTransaction
 import com.example.githubusers.repository.room.StorableGithubUser
 import com.example.githubusers.repository.room.UserDatabase
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -18,7 +17,7 @@ interface NaiveUserPersistence {
 /**
  * A naive implementation so that the app can be used while offline.
  * I originally tried to achieve this with Jetpack RemoteMediator, but it wouldn't react to
- * overscroll of the users list. I wasted more than 6 hours on that. Kind of my own fault
+ * overscroll of the users list. I wasted way too much time on that :D  Kind of my own fault
  * though, RemoteMediator is still in alpha.
  */
 class DefaultNaiveUserPersistence @Inject constructor(
@@ -44,6 +43,6 @@ class DefaultNaiveUserPersistence @Inject constructor(
     }
 
     override suspend fun clearAll() {
-        withContext(Dispatchers.IO) { userDao.clearAll() }
+        withContext(dispatcher) { userDao.clearAll() }
     }
 }

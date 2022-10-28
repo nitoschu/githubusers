@@ -52,7 +52,7 @@ private fun OverviewScreenTestInstance(
     users: Flow<PagingData<StorableGithubUser>> = flowOf(PagingData.from(listOf(mockGithubUser)))
 ) = OverviewScreen(uiState = uiState, pagingUsersData = users, retryLoadingUsers = {}, onErrorShown = {}, onUserClick = {})
 
-val mockGithubUser = StorableGithubUser(
+internal val mockGithubUser = StorableGithubUser(
     id = 1,
     login = "Bert",
     avatarUrl = "abcd",

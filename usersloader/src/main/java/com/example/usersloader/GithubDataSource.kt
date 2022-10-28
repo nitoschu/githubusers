@@ -49,5 +49,5 @@ internal object DefaultGithubDataSource : GithubDataSource {
 }
 
 interface GithubDataSource {
-    suspend fun queryUsers(page: Int = 0, perPage: Int = 10): Result<List<GithubUser>>
+    suspend fun queryUsers(page: Int, perPage: Int): Result<List<GithubUser>>
 }

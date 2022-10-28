@@ -16,11 +16,9 @@ data class StorableGithubUser(
 
 @Dao
 interface UserDao {
-    @Insert(onConflict = REPLACE)
-    suspend fun insertAll(users: List<StorableGithubUser>)
 
     @Insert(onConflict = REPLACE)
-    suspend fun insert(user: StorableGithubUser)
+    suspend fun insertAll(users: List<StorableGithubUser>)
 
     @Query("SELECT * FROM users ORDER BY page ASC")
     fun getAll(): List<StorableGithubUser>

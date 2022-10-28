@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Github Users</string>
+    <string name="fragment_overview_ohno">Oh no! D:</string>
+    <string name="fragment_overview_github_no_users">Github currently has no users.</string>
+    <string name="fragment_overview_button_hint">Just kidding! Click the button to manually refresh!</string>
+    <string name="refresh">Refresh</string>
 </resources>

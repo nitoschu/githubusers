@@ -4,14 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.* // ktlint-disable no-wildcard-imports
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.* // ktlint-disable no-wildcard-imports
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,10 +15,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +29,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.rememberAsyncImagePainter
+import com.example.githubusers.R
 import com.example.githubusers.repository.room.StorableGithubUser
+import com.example.githubusers.view.designsystem.RoundImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import dagger.hilt.android.AndroidEntryPoint
@@ -167,16 +163,11 @@ fun User(
                 .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(user.avatarUrl),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            RoundImage(
                 modifier = Modifier
                     .size(72.dp)
-                    .padding(8.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.Gray, CircleShape)
-                    .background(color = Color.Blue)
+                    .padding(8.dp),
+                painter = rememberAsyncImagePainter(user.avatarUrl)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(user.login, fontSize = 20.sp)
@@ -193,15 +184,15 @@ fun EmptyScreen(onRefresh: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Oh no! D:", fontSize = 48.sp)
+        Text(stringResource(R.string.fragment_overview_ohno), fontSize = 48.sp)
         Spacer(modifier = Modifier.height(32.dp))
-        Text("Github currently has no users.")
+        Text(stringResource(R.string.fragment_overview_github_no_users))
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Just kidding! Click the button to manually refresh!", textAlign = TextAlign.Center)
+        Text(stringResource(R.string.fragment_overview_button_hint), textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = { onRefresh() }) {
-            Text("Refresh")
+            Text(stringResource(R.string.refresh))
         }
     }
 }
@@ -210,6 +201,7 @@ fun EmptyScreen(onRefresh: () -> Unit) {
 @Composable
 fun UserPreview() {
     User(StorableGithubUser(
-        1234, "Gerhard", "---", htmlUrl = "html", score = 1f, page = 0), onNavigate = {}
+        1234, "Gerhard", "---", htmlUrl = "html", score = 1f, page = 0
+    ), onNavigate = {}
     )
 }

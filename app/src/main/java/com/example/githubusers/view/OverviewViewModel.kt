@@ -25,7 +25,7 @@ import javax.inject.Inject
  * This ViewModel is responsible for delegating requests to fetch Github users from
  * the remote source and persisting them.
  *
- * On a refresh, all currently loaded users will be invalidated and reloaded. Especially when
+ * On a refresh, all currently loaded users will be invalidated and reloaded. Thus when
  * refreshing all data, it is easy to hit the rate limitation of the API. However, this way it is
  * easier for other developers to check this code out and compile it without having to worry
  * about including project-external files with authorization information.
@@ -41,7 +41,7 @@ class OverviewViewModel @Inject constructor(
 
     // Jetpack Pager setup, the Flow of PagingData is collected by the Composables.
     private var usersSource = UsersPagingSource(repo)
-    private val pager = Pager(PagingConfig(pageSize = 10)) { usersSource }
+    private val pager = Pager(PagingConfig(pageSize = PAGE_SIZE)) { usersSource }
     var users: Flow<PagingData<StorableGithubUser>> = pager
         .flow
         .cachedIn(viewModelScope)
@@ -54,7 +54,7 @@ class OverviewViewModel @Inject constructor(
     private var hasLoadedUsers = false
 
     /*
-     * As handling PagingData manually is a hassle, for error handling
+     * As handling PagingData manually is difficult, for error handling
      * and data persistence we collect the user lists directly from the repo.
      */
     fun collectUserResultsFromRepo() {
@@ -107,6 +107,8 @@ class OverviewViewModel @Inject constructor(
     ) = _uiState.emit(OverviewUiState(isLoading, error, persistedUsers))
 
     fun onErrorShown() = viewModelScope.launch { setNewUiState(isLoading = false, error = null) }
+
+    companion object { const val PAGE_SIZE = 10 }
 }
 
 data class OverviewUiState(
